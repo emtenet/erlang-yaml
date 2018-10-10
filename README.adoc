@@ -1,0 +1,25 @@
+= solarized-yaml: YAML decoder
+
+*solarized-yaml* is a http://yaml.org/[YAML] decoder
+for http://www.erlang.org/[Erlang]
+with emphasis on friendly error messages.
+
+solarized-yaml is distributed under the terms of the *ISC Licence*;
+see link:LICENSE[`LICENSE`].
+
+== Documentation
+
+
+== Usage with erlang.mk
+
+Add to your `Makefile`:
+
+.Makefile
+----
+DEPS = yaml
+dep_yaml = git https://github.com/emtenet/erlang-yaml master
+----
+
+== Licence
+
+See link:../LICENSE[LICENSE] for licensing information.
