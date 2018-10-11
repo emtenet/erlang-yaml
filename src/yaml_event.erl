@@ -34,8 +34,8 @@
 start(Source) when is_binary(Source) ->
     S = #scan
       { b = Source
-      , r = 0
-      , c = 0
+      , r = 1
+      , c = 1
       },
     #event
         { scan = S

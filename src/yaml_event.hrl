@@ -5,8 +5,8 @@
 
 -record(scan,
         { b :: binary()
-        , r :: non_neg_integer() % row
-        , c :: non_neg_integer() % col
+        , r :: pos_integer() % row
+        , c :: pos_integer() % col
         }).
 
 -record(event,
