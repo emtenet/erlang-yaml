@@ -1,6 +1,6 @@
-= solarized-yaml: YAML decoder
+= solarized-yaml: YAML parser
 
-*solarized-yaml* is a http://yaml.org/[YAML] decoder
+*solarized-yaml* is a http://yaml.org/[YAML] parser
 for http://www.erlang.org/[Erlang]
 with emphasis on friendly error messages.
 
@@ -9,6 +9,9 @@ see link:LICENSE[`LICENSE`].
 
 == Documentation
 
+* link:doc/yaml_event.adoc[`yaml_event`] module.
++
+Parse a binary emitting YAML events and errors.
 
 == Usage with erlang.mk
 

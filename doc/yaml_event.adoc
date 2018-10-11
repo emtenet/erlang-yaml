@@ -1,0 +1,51 @@
+= `yaml_event` module
+
+The `yaml_event` module provides a YAML parser interface.
+
+The parser is started with <<start>>
+and then a stream of <<events>> and errors are retrieved
+with repeated calls to <<next>>.
+
+[#events]
+== Events
+
+The YAML event parser can produce the following events:
+
+[source,erlang]
+----
+-type yaml_event:event() ::
+    {stream, yaml:coord()} |
+    {end_of_stream, yaml:coord()}.
+----
+
+[#start]
+== `yaml_event:start/1`
+
+Start the YAML parser by calling `start/1` with the YAML source as a binary.
+
+[source,erlang]
+----
+-spec yaml_event:start(Source :: binary) -> yaml_event:state().
+----
+
+[#next]
+== `yaml_event:next/1`
+
+Calls to `next/1` will return the next event or error
+along with the parser state to use in the `next/1` call.
+
+When the parser has finished it will return the `end_of_events` atom.
+
+[source,erlang]
+----
+-spec yaml_event:next(State) ->
+        {event, Event, NextState} |
+        {error, Error, NextState} |
+        end_of_events
+    when
+        State :: yaml_event::state(),
+        Event :: yaml_event::event(),
+        Error :: term(),
+        NextState :: yaml_event::state().
+----
+
