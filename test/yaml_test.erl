@@ -28,7 +28,7 @@ execute_test_case(Dir, File) ->
 
 test_events(State, []) ->
     case yaml_event:next(State) of
-        end_of_stream ->
+        end_of_events ->
             ok;
 
         Value ->
@@ -36,7 +36,7 @@ test_events(State, []) ->
                 [ {module, ?MODULE}
                 , {line, ?LINE}
                 , {expression, "yaml_event:next(State)"}
-                , {expected, end_of_stream}
+                , {expected, end_of_events}
                 , {value, Value}
                 ]})
     end;

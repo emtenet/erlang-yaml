@@ -14,3 +14,5 @@
         , next :: fun((yaml_event:state()) -> yaml_event:next())
         }).
 
+-define(COORD(S), {(S)#scan.r, (S)#scan.c}).
+

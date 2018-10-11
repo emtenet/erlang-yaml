@@ -17,7 +17,7 @@
 %=======================================================================
 
 -type event() ::
-    {stream, yaml:coord()} |
+    {start_of_stream, yaml:coord()} |
     {end_of_stream, yaml:coord()}.
 
 -opaque state() :: #event{}.
@@ -39,7 +39,7 @@ start(Source) when is_binary(Source) ->
       },
     #event
         { scan = S
-        , next = fun end_of_events/1
+        , next = fun start_of_stream/1
         }.
 
 %=======================================================================
@@ -53,4 +53,18 @@ next(E = #event{next = Next}) when is_function(Next, 1) ->
 
 end_of_events(#event{}) ->
     end_of_events.
+
+%=======================================================================
+
+start_of_stream(E = #event{scan = S}) ->
+    Event = {start_of_stream, ?COORD(S)},
+    Next = fun end_of_stream/1,
+    {event, Event, E#event{next = Next}}.
+
+%=======================================================================
+
+end_of_stream(E = #event{scan = S}) ->
+    Event = {end_of_stream, ?COORD(S)},
+    Next = fun end_of_events/1,
+    {event, Event, E#event{next = Next}}.
 

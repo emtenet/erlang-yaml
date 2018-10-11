@@ -14,7 +14,7 @@ The YAML event parser can produce the following events:
 [source,erlang]
 ----
 -type yaml_event:event() ::
-    {stream, yaml:coord()} |
+    {start_of_stream, yaml:coord()} |
     {end_of_stream, yaml:coord()}.
 ----
 
