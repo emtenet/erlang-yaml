@@ -1,0 +1,8 @@
+@@@ Empty source binary
+
+@@@ source
+
+@@@ events
+
+{stream, {1, 1}}.
+{stream_end, {1, 1}}.

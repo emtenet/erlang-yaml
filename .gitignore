@@ -13,3 +13,4 @@ ebin/*
 yaml.d
 cover/*
 *.coverdata
+test/ct.cover.spec
