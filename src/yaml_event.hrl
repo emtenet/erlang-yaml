@@ -3,16 +3,8 @@
 %% See LICENSE for licensing information.
 %=======================================================================
 
--record(scan,
-        { b :: binary()
-        , r :: pos_integer() % row
-        , c :: pos_integer() % col
-        }).
-
 -record(event,
-        { scan :: #scan{}
+        { scan :: yaml_scan:state()
         , next :: fun((yaml_event:state()) -> yaml_event:next())
         }).
-
--define(COORD(S), {(S)#scan.r, (S)#scan.c}).
 

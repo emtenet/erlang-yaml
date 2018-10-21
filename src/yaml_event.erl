@@ -14,6 +14,10 @@
 
 -include("yaml_event.hrl").
 
+-ifdef(TEST).
+-export([ mock/1 ]).
+-endif.
+
 %=======================================================================
 
 -type event() ::
@@ -32,15 +36,22 @@
 -spec start(binary()) -> state().
 
 start(Source) when is_binary(Source) ->
-    S = #scan
-      { b = Source
-      , r = 1
-      , c = 1
-      },
     #event
-        { scan = S
+        { scan = yaml_scan:start(Source)
         , next = fun start_of_stream/1
         }.
+
+%=======================================================================
+
+-ifdef(TEST).
+
+-spec mock(yaml_scan:state()) -> #event{}.
+
+mock(Scan) ->
+    Next = fun end_of_events/1,
+    #event{scan = Scan, next = Next}.
+
+-endif.
 
 %=======================================================================
 
@@ -57,14 +68,14 @@ end_of_events(#event{}) ->
 %=======================================================================
 
 start_of_stream(E = #event{scan = S}) ->
-    Event = {start_of_stream, ?COORD(S)},
+    Event = {start_of_stream, yaml_scan:coord(S)},
     Next = fun end_of_stream/1,
     {event, Event, E#event{next = Next}}.
 
 %=======================================================================
 
 end_of_stream(E = #event{scan = S}) ->
-    Event = {end_of_stream, ?COORD(S)},
+    Event = {end_of_stream, yaml_scan:coord(S)},
     Next = fun end_of_events/1,
     {event, Event, E#event{next = Next}}.
 
