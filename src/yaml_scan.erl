@@ -5,9 +5,12 @@
 
 -export([ start/1
         , next/1
-        , grapheme/1
+        % INFO
         , coord/1
         , consumed/2
+        , grapheme/1
+        , indented/2
+        % SPACE
         , space/1
         ]).
 
@@ -248,10 +251,10 @@ prepare_tester(Line, Binary, Next, Scan = #scan{}) when is_binary(Binary) ->
 
 %=======================================================================
 
--spec grapheme(state()) -> string:grapheme_cluster() | break | end_of_stream.
+-spec coord(state()) -> yaml:coord().
 
-grapheme(#scan{g = G}) ->
-    G.
+coord(#scan{r = R, c = C}) ->
+    {R, C}.
 
 %=======================================================================
 
@@ -264,10 +267,17 @@ consumed(#scan{b = From}, #scan{b = Thru}) when size(From) >= size(Thru) ->
 
 %=======================================================================
 
--spec coord(state()) -> yaml:coord().
+-spec grapheme(state()) -> string:grapheme_cluster() | break | end_of_stream.
 
-coord(#scan{r = R, c = C}) ->
-    {R, C}.
+grapheme(#scan{g = G}) ->
+    G.
+
+%=======================================================================
+
+-spec indented(state(), integer()) -> boolean().
+
+indented(#scan{c = C}, I) ->
+    C >= I.
 
 %=======================================================================
 

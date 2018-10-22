@@ -39,6 +39,7 @@ start(Source) when is_binary(Source) ->
     #event
         { scan = yaml_scan:start(Source)
         , next = fun start_of_stream/1
+        , i = -1
         }.
 
 %=======================================================================
@@ -49,7 +50,7 @@ start(Source) when is_binary(Source) ->
 
 mock(Scan) ->
     Next = fun end_of_events/1,
-    #event{scan = Scan, next = Next}.
+    #event{scan = Scan, next = Next, i = -1}.
 
 -endif.
 

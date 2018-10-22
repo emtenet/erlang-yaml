@@ -6,5 +6,6 @@
 -record(event,
         { scan :: yaml_scan:state()
         , next :: fun((yaml_event:state()) -> yaml_event:next())
+        , i :: integer()
         }).
 
