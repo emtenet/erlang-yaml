@@ -6,7 +6,6 @@
 -export([ scalar/3
         ]).
 
--include_lib("eunit/include/eunit.hrl").
 -include("yaml_event.hrl").
 
 %=======================================================================
@@ -57,6 +56,8 @@ text(Context, T, S) ->
 %=======================================================================
 
 -ifdef(TEST).
+
+-include_lib("eunit/include/eunit.hrl").
 
 -define(TEST_CASE(C, X, F, T, P), {X, {?LINE, test_case(C, F, T, P, [])}}).
 -define(TEST_CASE(C, X, F, T, P, E), {X, {?LINE, test_case(C, F, T, P, E)}}).
