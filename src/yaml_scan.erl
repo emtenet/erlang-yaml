@@ -23,7 +23,7 @@
 
 -export_type([ state/0 ]).
 
--include("yaml_event.hrl").
+-include("yaml_private.hrl").
 
 -ifdef(TEST).
 -include_lib("eunit/include/eunit.hrl").

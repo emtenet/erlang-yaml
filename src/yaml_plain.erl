@@ -6,7 +6,7 @@
 -export([ scalar/3
         ]).
 
--include("yaml_event.hrl").
+-include("yaml_private.hrl").
 
 %=======================================================================
 

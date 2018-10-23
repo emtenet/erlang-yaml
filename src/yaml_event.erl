@@ -12,7 +12,7 @@
              , next/0
              ]).
 
--include("yaml_event.hrl").
+-include("yaml_private.hrl").
 
 -ifdef(TEST).
 -export([ mock/1 ]).
