@@ -30,6 +30,13 @@
 
 -include("yaml_event.hrl").
 
+-ifdef(TEST).
+-include_lib("eunit/include/eunit.hrl").
+-export([ test_case/5
+        , test_pre_condition/2
+        ]).
+-endif.
+
 %=======================================================================
 
 -record(token,
@@ -209,4 +216,29 @@ indented(#token{event = #event{i = I}}, Scan) ->
 indent_plus(#token{event = #event{i = N}}, M) ->
     % N was already incremented when {content, N, _} was pushed onto stack
     N + M - 1.
+
+%=======================================================================
+
+-ifdef(TEST).
+
+test_case(Test, {Fr, Fc, Fb}, {Tr, Tc, Tb}, Token, Errors)
+        when is_function(Test, 1) andalso
+             is_list(Errors) ->
+    From = yaml_scan:mock(Fb, Fr, Fc),
+    Thru = yaml_scan:mock(Tb, Tr, Tc),
+    Event = yaml_event:mock(From),
+    RawResult = Test(Event),
+    ?assertMatch({_, _, #event{}}, RawResult),
+    {TokenResult, ErrorsResult, #event{scan = ThruResult}} = RawResult,
+    Result = {TokenResult, ErrorsResult, ThruResult},
+    ?assertEqual({Token, Errors, Thru}, Result).
+
+%-----------------------------------------------------------------------
+
+test_pre_condition(Test, {Fr, Fc, Fb}) when is_function(Test, 1) ->
+    From = yaml_scan:mock(Fb, Fr, Fc),
+    Event = yaml_event:mock(From),
+    ?assertError(pre_condition, Test(Event)).
+
+-endif.
 
