@@ -15,26 +15,60 @@
         , tag := term()
         }.
 
--define(IS_WHITE(C),
-    (       (C =:= $\s)
-     orelse (C =:= $\t)
+-define(IS_WHITE(G),
+    (       (G =:= $\s)
+     orelse (G =:= $\t)
     )).
 
--define(IS_PRINTABLE(C),
-    (       (C =:= $\t)
-     orelse ((C >= $\s) andalso (C =< $~))
-     orelse (C =:= 16#85)
-     orelse ((C >= 16#A0) andalso (C =< 16#D7FF))
-     orelse ((C >= 16#E000) andalso (C =< 16#FFFD))
-     orelse ((C >= 16#10000) andalso (C =< 16#10FFFF))
-     orelse (hd(C))
+-define(IS_PRINTABLE(G),
+    (       (G =:= $\t)
+     orelse ((G >= $\s) andalso (G =< $~))
+     orelse (G =:= 16#85)
+     orelse ((G >= 16#A0) andalso (G =< 16#D7FF))
+     orelse ((G >= 16#E000) andalso (G =< 16#FFFD))
+     orelse ((G >= 16#10000) andalso (G =< 16#10FFFF))
+     orelse (hd(G))
     )).
 
--define(IS_FLOW_INDICATOR(C),
-    (       (C =:= $,)
-     orelse (C =:= $[)
-     orelse (C =:= $])
-     orelse (C =:= ${)
-     orelse (C =:= $})
+-define(INDICATOR, "-?:,[]{}#&*!|>'\"%@`").
+
+-define(IS_INDICATOR(G),
+    (       (G =:= $-)
+     orelse (G =:= $?)
+     orelse (G =:= $:)
+     orelse (G =:= $,)
+     orelse (G =:= $[)
+     orelse (G =:= $])
+     orelse (G =:= ${)
+     orelse (G =:= $})
+     orelse (G =:= $#)
+     orelse (G =:= $&)
+     orelse (G =:= $*)
+     orelse (G =:= $!)
+     orelse (G =:= $|)
+     orelse (G =:= $>)
+     orelse (G =:= $')
+     orelse (G =:= $\")
+     orelse (G =:= $%)
+     orelse (G =:= $@)
+     orelse (G =:= $`)
+    )).
+
+-define(PLAIN_CHECK_INDICATOR, "-?:").
+
+-define(IS_PLAIN_CHECK_INDICATOR(G),
+    (       (G =:= $-)
+     orelse (G =:= $?)
+     orelse (G =:= $:)
+    )).
+
+-define(FLOW_INDICATOR, ",[]{}").
+
+-define(IS_FLOW_INDICATOR(G),
+    (       (G =:= $,)
+     orelse (G =:= $[)
+     orelse (G =:= $])
+     orelse (G =:= ${)
+     orelse (G =:= $})
     )).
 
