@@ -10,17 +10,18 @@
 
 %=======================================================================
 
--type context() :: block | flow.
+-type style() :: block | flow.
 
 %=======================================================================
 
--spec scalar(#event{}, context(), props()) -> {term(), list(), #event{}}.
+-spec scalar(yaml_event:state(), style(), props()) ->
+    {term(), list(), yaml_event:state()}.
 
-scalar(Event = #event{scan = S}, Context, Props)
-        when (Context =:= block orelse Context =:= flow) andalso
+scalar(Event, Style, Props)
+        when (Style =:= block orelse Style =:= flow) andalso
              is_map(Props) ->
-    T = yaml_token:start(Event, plain, fun construct/2, Props),
-    first(Context, T, S).
+    {T, S} = yaml_token:start(Event, plain, fun construct/2, Props),
+    first(Style, T, S).
 
 %=======================================================================
 
@@ -33,30 +34,30 @@ construct(Ps, #{ from := From, thru := Thru, anchor := Anchor, tag := Tag}) ->
 
 %=======================================================================
 
-first(Context, T, S) ->
+first(Style, T, S) ->
     case yaml_scan:grapheme(S) of
         G when ?IS_WHITE(G) ->
             error(pre_condition);
 
         G when ?IS_PLAIN_CHECK_INDICATOR(G) ->
-            first_check(Context, T, yaml_scan:next(S));
+            first_check(Style, T, yaml_scan:next(S));
 
         G when ?IS_INDICATOR(G) ->
             error(pre_condition);
 
         _ ->
-            text(Context, T, S)
+            text(Style, T, S)
     end.
 
 %-----------------------------------------------------------------------
 
-first_check(Context, T, S) ->
+first_check(Style, T, S) ->
     case yaml_scan:grapheme(S) of
         G when ?IS_WHITE(G) ->
             error(pre_condition);
 
         G when ?IS_PRINTABLE(G) ->
-            text(Context, T, S);
+            text(Style, T, S);
 
         _ ->
             error(pre_condition)
@@ -64,16 +65,16 @@ first_check(Context, T, S) ->
 
 %=======================================================================
 
-text(Context, T, S) ->
+text(Style, T, S) ->
     case yaml_scan:grapheme(S) of
         $: ->
-            text_colon(Context, T, S, yaml_scan:next(S));
+            text_colon(Style, T, S, yaml_scan:next(S));
 
         G when ?IS_WHITE(G) ->
-            text_white(Context, T, S, yaml_scan:next(S));
+            text_white(Style, T, S, yaml_scan:next(S));
 
         G when ?IS_PRINTABLE(G) ->
-            text(Context, T, yaml_scan:next(S));
+            text(Style, T, yaml_scan:next(S));
 
         _ ->
             yaml_token:finish(T, S)
@@ -81,13 +82,13 @@ text(Context, T, S) ->
 
 %-----------------------------------------------------------------------
 
-text_colon(Context, T, White, S) ->
+text_colon(Style, T, White, S) ->
     case yaml_scan:grapheme(S) of
         G when ?IS_WHITE(G) ->
             yaml_token:finish(T, White);
 
         G when ?IS_PRINTABLE(G) ->
-            text(Context, T, yaml_scan:next(S));
+            text(Style, T, yaml_scan:next(S));
 
         _ ->
             yaml_token:finish(T, White)
@@ -95,19 +96,19 @@ text_colon(Context, T, White, S) ->
 
 %-----------------------------------------------------------------------
 
-text_white(Context, T, White, S) ->
+text_white(Style, T, White, S) ->
     case yaml_scan:grapheme(S) of
         $: ->
-            text_colon(Context, T, White, yaml_scan:next(S));
+            text_colon(Style, T, White, yaml_scan:next(S));
 
         $# ->
             yaml_token:finish(T, White);
 
         G when ?IS_WHITE(G) ->
-            text_white(Context, T, White, yaml_scan:next(S));
+            text_white(Style, T, White, yaml_scan:next(S));
 
         G when ?IS_PRINTABLE(G) ->
-            text(Context, T, yaml_scan:next(S));
+            text(Style, T, yaml_scan:next(S));
 
         _ ->
             yaml_token:finish(T, White)
@@ -125,21 +126,21 @@ text_white(Context, T, White, S) ->
 
 %-----------------------------------------------------------------------
 
-test_case(Context, From = {Fr, Fc, _}, Thru = {Tr, Tc, _}, Parts, Errors) ->
+test_case(Style, From = {Fr, Fc, _}, Thru = {Tr, Tc, _}, Parts, Errors) ->
     Anchor = no_anchor,
     Tag = no_tag,
     Props = #{ anchor => Anchor, tag => Tag },
     Token = {plain, {Fr, Fc}, {Tr, Tc}, Anchor, Tag, Parts},
-    Test = fun (Event) -> scalar(Event, Context, Props) end,
+    Test = fun (Event) -> scalar(Event, Style, Props) end,
     fun () -> yaml_token:test_case(Test, From, Thru, Token, Errors) end.
 
 %-----------------------------------------------------------------------
 
-test_pre_condition(Context, From) ->
+test_pre_condition(Style, From) ->
     Anchor = no_anchor,
     Tag = no_tag,
     Props = #{ anchor => Anchor, tag => Tag },
-    Test = fun (Event) -> scalar(Event, Context, Props) end,
+    Test = fun (Event) -> scalar(Event, Style, Props) end,
     fun () -> yaml_token:test_pre_condition(Test, From) end.
 
 %-----------------------------------------------------------------------

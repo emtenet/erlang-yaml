@@ -3,12 +3,6 @@
 %% See LICENSE for licensing information.
 %=======================================================================
 
--record(event,
-        { scan :: yaml_scan:state()
-        , next :: fun((yaml_event:state()) -> yaml_event:next())
-        , i :: integer()
-        }).
-
 -type props() ::
        #{ from := yaml:coord()
         , anchor := term()

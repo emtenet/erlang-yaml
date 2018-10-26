@@ -40,7 +40,7 @@
 %=======================================================================
 
 -record(token,
-        { event :: #event{}
+        { event :: yaml_event:state()
         , scan :: yaml_scan:state()
         , from :: yaml:coord()
         , parts :: list()
@@ -58,20 +58,23 @@
 % START
 %=======================================================================
 
--spec start(#event{}, atom(), construct()) -> state().
+-spec start(yaml_event:state(), atom(), construct()) ->
+    {state(), yaml_scan:state()}.
 
 start(Event, Context, Build) ->
     start(Event, Context, Build, #{}).
 
 %=======================================================================
 
--spec start(#event{}, atom(), construct(), map()) -> state().
+-spec start(yaml_event:state(), atom(), construct(), map()) ->
+    {state(), yaml_scan:state()}.
 
-start(Event = #event{scan = Scan}, Context, Construct, Store)
+start(Event, Context, Construct, Store)
         when is_atom(Context) andalso
              is_function(Construct, 2) andalso
              is_map(Store) ->
-    #token
+    Scan = yaml_event:scan(Event),
+    Token = #token
         { event = Event
         , scan = Scan
         , from = yaml_scan:coord(Scan)
@@ -80,20 +83,23 @@ start(Event = #event{scan = Scan}, Context, Construct, Store)
         , context = Context
         , construct = Construct
         , store = Store
-        }.
+        },
+    {Token, Scan}.
 
 %=======================================================================
 % FINISH
 %=======================================================================
 
--spec finish(state(), yaml_scan:state()) -> {term(), list(), #event{}}.
+-spec finish(state(), yaml_scan:state()) ->
+    {term(), list(), yaml_event:state()}.
 
 finish(T = #token{}, End) ->
     finish(keep(T, End)).
 
 %=======================================================================
 
--spec finish(state()) -> {term(), list(), #event{}}.
+-spec finish(state()) ->
+    {term(), list(), yaml_event:state()}.
 
 finish(T = #token{}) ->
     #token
@@ -110,7 +116,7 @@ finish(T = #token{}) ->
     {Token, Es} = Construct(Parts, Store#{ from => From, thru => Thru }),
     Context = {Context0, From , Thru},
     Errors = error_context(Errors0, error_context(Es, [], Context), Context),
-    {Token, Errors, Event#event{scan = End}}.
+    {Token, Errors, yaml_event:scan_to(Event, End)}.
 
 %-----------------------------------------------------------------------
 
@@ -206,16 +212,16 @@ consumed(#token{scan = Start}, End) ->
 
 -spec indented(state(), yaml_scan:state()) -> boolean().
 
-indented(#token{event = #event{i = I}}, Scan) ->
-    yaml_scan:indented(Scan, I).
+indented(#token{event = Event}, Scan) ->
+    yaml_event:indented(Event, Scan).
 
 %=======================================================================
 
 -spec indent_plus(state(), integer()) -> integer().
 
-indent_plus(#token{event = #event{i = N}}, M) ->
-    % N was already incremented when {content, N, _} was pushed onto stack
-    N + M - 1.
+indent_plus(#token{event = Event}, M) ->
+    yaml_event:indent_plus(Event, M).
+
 
 %=======================================================================
 
@@ -228,8 +234,9 @@ test_case(Test, {Fr, Fc, Fb}, {Tr, Tc, Tb}, Token, Errors)
     Thru = yaml_scan:mock(Tb, Tr, Tc),
     Event = yaml_event:mock(From),
     RawResult = Test(Event),
-    ?assertMatch({_, _, #event{}}, RawResult),
-    {TokenResult, ErrorsResult, #event{scan = ThruResult}} = RawResult,
+    ?assertMatch({_, _, _}, RawResult),
+    {TokenResult, ErrorsResult, ThruEvent} = RawResult,
+    ThruResult = yaml_event:scan(ThruEvent),
     Result = {TokenResult, ErrorsResult, ThruResult},
     ?assertEqual({Token, Errors, Thru}, Result).
 

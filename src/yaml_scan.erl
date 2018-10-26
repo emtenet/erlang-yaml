@@ -10,18 +10,12 @@
         , consumed/2
         , grapheme/1
         , indented/2
-        % SPACE
-        , space/1
+        , end_of/1
         ]).
 
--export_type([ space/0
-             , space_line/0
-             , space_indent/0
-             , space_white/0
-             , space_end_of/0
+-export_type([ state/0
+             , grapheme/0
              ]).
-
--export_type([ state/0 ]).
 
 -include("yaml_private.hrl").
 
@@ -31,8 +25,6 @@
 -endif.
 
 %=======================================================================
-
--define(SCAN_END(E, S), (E)#event{scan = (S)}).
 
 -define(IS_BREAK(G),
             (       (G =:= $\n)
@@ -49,14 +41,17 @@
 
 %=======================================================================
 
+-type grapheme() ::
+    string:grapheme_cluster() |
+    break |
+    end_of_stream |
+    bad_encoding.
+
 -record(scan,
         { b = <<>>
             :: binary()
         , g = end_of_stream
-            ::  string:grapheme_cluster() |
-                break |
-                end_of_stream |
-                bad_encoding
+            :: grapheme()
         , n = <<>>
             :: binary()
         , r = 1
@@ -66,19 +61,6 @@
         }).
 
 -opaque state() :: #scan{}.
-
--type space_line() :: in_line | indent_line.
-
--type space_indent() :: non_neg_integer().
-
--type space_white() :: non_neg_integer().
-
--type space_end_of() :: stream | document | directives.
-
--type space() ::
-    {space_line(), space_indent(), space_white()} |
-    {end_of, space_end_of(), yaml:coord()} |
-    bad_encoding.
 
 %=======================================================================
 
@@ -267,7 +249,7 @@ consumed(#scan{b = From}, #scan{b = Thru}) when size(From) >= size(Thru) ->
 
 %=======================================================================
 
--spec grapheme(state()) -> string:grapheme_cluster() | break | end_of_stream.
+-spec grapheme(state()) -> grapheme().
 
 grapheme(#scan{g = G}) ->
     G.
@@ -281,259 +263,23 @@ indented(#scan{c = C}, I) ->
 
 %=======================================================================
 
--spec space(#event{}) -> {space(), #event{}}.
+-spec end_of(state()) ->
+    {document | directives, yaml:coord(), state()} |
+    false.
 
-space(SS = #event{scan = S = #scan{c = 1}}) ->
-    start_of_line(SS, S);
-space(SS = #event{scan = S = #scan{c = C}}) when C > 1 ->
-    start_of_space(SS, S, in_line).
-
-%-----------------------------------------------------------------------
-
-start_of_line(SS, S = #scan{b = <<"...">>}) ->
-    end_of_document(SS, S);
-start_of_line(SS, S = #scan{b = <<"...", X, _/binary>>})
-        when ?IS_SEPARATE(X) ->
-    end_of_document(SS, S);
-start_of_line(SS, S = #scan{b = <<"---">>}) ->
-    end_of_directives(SS, S);
-start_of_line(SS, S = #scan{b = <<"---", X, _/binary>>})
-        when ?IS_SEPARATE(X) ->
-    end_of_directives(SS, S);
-start_of_line(SS, S) ->
-    start_of_space(SS, S, indent_line).
+end_of(S = #scan{b = <<"...", _/binary>>}) ->
+    end_of(S, document);
+end_of(S = #scan{b = <<"...", X, _/binary>>}) when ?IS_SEPARATE(X) ->
+    end_of(S, document);
+end_of(S = #scan{b = <<"---", _/binary>>}) ->
+    end_of(S, directives);
+end_of(S = #scan{b = <<"---", X, _/binary>>}) when ?IS_SEPARATE(X) ->
+    end_of(S, directives);
+end_of(#scan{}) ->
+    false.
 
 %-----------------------------------------------------------------------
 
-start_of_space(SS, S = #scan{}, Line) ->
-    case S#scan.g of
-        end_of_stream ->
-            end_of_stream(SS, S);
-
-        break ->
-            start_of_line(SS, next(S));
-
-        $\s ->
-            indent(SS, next(S), Line, 1);
-
-        $\t ->
-            whitespace(SS, next(S), Line, 0, 1);
-
-        $# ->
-            comment(SS, next(S));
-
-        _ ->
-            line(SS, S, Line, 0, 0)
-    end.
-
-%-----------------------------------------------------------------------
-
-indent(SS, S = #scan{}, Line, Indent) ->
-    case S#scan.g of
-        end_of_stream ->
-            end_of_stream(SS, S);
-
-        break ->
-            start_of_line(SS, next(S));
-
-        $\s ->
-            indent(SS, next(S), Line, Indent + 1);
-
-        $\t ->
-            whitespace(SS, next(S), Line, Indent, 1);
-
-        $# ->
-            comment(SS, next(S));
-
-        _ ->
-            line(SS, S, Line, Indent, 0)
-    end.
-
-%-----------------------------------------------------------------------
-
-whitespace(SS, S = #scan{}, Line, Indent, White) ->
-    case S#scan.g of
-        end_of_stream ->
-            end_of_stream(SS, S);
-
-        break ->
-            start_of_line(SS, next(S));
-
-        $\s ->
-            whitespace(SS, next(S), Line, Indent, White + 1);
-
-        $\t ->
-            whitespace(SS, next(S), Line, Indent, White + 1);
-
-        $# ->
-            comment(SS, next(S));
-
-        _ ->
-            line(SS, S, Line, Indent, White)
-    end.
-
-%-----------------------------------------------------------------------
-
-comment(SS, S = #scan{}) ->
-    case S#scan.g of
-        end_of_stream ->
-            end_of_stream(SS, S);
-
-        break ->
-            start_of_line(SS, next(S));
-
-        bad_encoding ->
-            bad_encoding(SS, S);
-
-        _ ->
-            comment(SS, next(S))
-    end.
-
-%-----------------------------------------------------------------------
-
-end_of_stream(SS = #event{}, S = #scan{}) ->
-    #scan{r = R, c = C} = S,
-    {{end_of, stream, {R, C}}, ?SCAN_END(SS, S)}.
-
-%-----------------------------------------------------------------------
-
-end_of_document(SS = #event{}, S = #scan{}) ->
-    #scan{b = <<"...", B/binary>>, r = R, c = 1} = S,
-    End = prepare(B, R, 4),
-    {{end_of, document, {R, 1}}, ?SCAN_END(SS, End)}.
-
-%-----------------------------------------------------------------------
-
-end_of_directives(SS = #event{}, S = #scan{}) ->
-    #scan{b = <<"---", B/binary>>, r = R, c = 1} = S,
-    End = prepare(B, R, 4),
-    {{end_of, directives, {R, 1}}, ?SCAN_END(SS, End)}.
-
-%-----------------------------------------------------------------------
-
-line(SS = #event{}, S = #scan{}, Line, Indent, White) ->
-    {{Line, Indent, White}, ?SCAN_END(SS, S)}.
-
-%-----------------------------------------------------------------------
-
-bad_encoding(SS = #event{}, S = #scan{}) ->
-    {bad_encoding, ?SCAN_END(SS, S)}.
-
-%=======================================================================
-
--ifdef(TEST).
-
--define(_space(T, B, S, A), {T, {?LINE, fun () -> space_tester(B, S, A) end}}).
-
-space_test_() ->
-    [ ?_space("No space at start of line",
-              {1, 1, <<".">>},
-              {indent_line, 0, 0},
-              {1, 1, <<".">>})
-    , ?_space("No space in middle of line",
-              {1, 2, <<".">>},
-              {in_line, 0, 0},
-              {1, 2, <<".">>})
-    , ?_space("Indent at start of line",
-              {1, 1, <<"  .">>},
-              {indent_line, 2, 0},
-              {1, 3, <<".">>})
-    , ?_space("Indent in middle of line",
-              {1, 2, <<"  .">>},
-              {in_line, 2, 0},
-              {1, 4, <<".">>})
-    , ?_space("Whitespace at start of line",
-              {1, 1, <<"\t .">>},
-              {indent_line, 0, 2},
-              {1, 3, <<".">>})
-    , ?_space("Whitespace in middle of line",
-              {1, 2, <<"\t .">>},
-              {in_line, 0, 2},
-              {1, 4, <<".">>})
-    , ?_space("Indent on next line",
-              {1, 3, <<"\n .">>},
-              {indent_line, 1, 0},
-              {2, 2, <<".">>})
-    , ?_space("Comment goes to next line",
-              {1, 3, <<"# comment \n .">>},
-              {indent_line, 1, 0},
-              {2, 2, <<".">>})
-    , ?_space("Skip blank lines",
-              {1, 3, <<"\n \t \t\n.">>},
-              {indent_line, 0, 0},
-              {3, 1, <<".">>})
-    , ?_space("Skip comment lines",
-              {1, 3, <<"\n#comment\n.">>},
-              {indent_line, 0, 0},
-              {3, 1, <<".">>})
-    , ?_space("Skip comment lines",
-              {1, 3, <<"\n \t #comment\n.">>},
-              {indent_line, 0, 0},
-              {3, 1, <<".">>})
-    , ?_space("End of stream",
-              {1, 3, <<"\n">>},
-              {end_of, stream, {2, 1}},
-              {2, 1, <<>>})
-    , ?_space("End of stream in comment",
-              {1, 2, <<" # ">>},
-              {end_of, stream, {1, 5}},
-              {1, 5, <<>>})
-    , ?_space("End of document (break)",
-              {1, 2, <<"\n...\n">>},
-              {end_of, document, {2, 1}},
-              {2, 4, <<"\n">>})
-    , ?_space("End of document (space)",
-              {1, 2, <<"\n... \n">>},
-              {end_of, document, {2, 1}},
-              {2, 4, <<" \n">>})
-    , ?_space("End of document (content)",
-              {1, 2, <<"\n... content\n">>},
-              {end_of, document, {2, 1}},
-              {2, 4, <<" content\n">>})
-    , ?_space("End of document (stream)",
-              {1, 2, <<"\n...">>},
-              {end_of, document, {2, 1}},
-              {2, 4, <<"">>})
-    , ?_space("End of directives (break)",
-              {1, 2, <<"\n---\n">>},
-              {end_of, directives, {2, 1}},
-              {2, 4, <<"\n">>})
-    , ?_space("End of directives (space)",
-              {1, 2, <<"\n--- \n">>},
-              {end_of, directives, {2, 1}},
-              {2, 4, <<" \n">>})
-    , ?_space("End of directives (content)",
-              {1, 2, <<"\n--- content\n">>},
-              {end_of, directives, {2, 1}},
-              {2, 4, <<" content\n">>})
-    , ?_space("End of directives (stream)",
-              {1, 2, <<"\n---">>},
-              {end_of, directives, {2, 1}},
-              {2, 4, <<>>})
-    , ?_space("Bad encoding in middle of line",
-              {1, 2, <<"  ", 128>>},
-              {in_line, 2, 0},
-              {1, 4, <<128>>})
-    , ?_space("Bad encoding in comment",
-              {1, 2, <<" # ", 128>>},
-              bad_encoding,
-              {1, 5, <<128>>})
-    ].
-
-%-----------------------------------------------------------------------
-
-space_simplify({Space, #event{scan = Scan}}) ->
-    {Space, Scan}.
-
-%-----------------------------------------------------------------------
-
-space_tester({Br, Bc, Bb}, Space, {Ar, Ac, Ab}) ->
-    Before = prepare(Bb, Br, Bc),
-    State = yaml_event:mock(Before),
-    After = prepare(Ab, Ar, Ac),
-    ?assertEqual({Space, After}, space_simplify(space(State))).
-
-%-----------------------------------------------------------------------
-
--endif.
+end_of(#scan{b = <<_:3/binary, B/binary>>, r = R, c = 1}, What) ->
+    {What, {R, 1}, prepare(B, R, 4)}.
 
