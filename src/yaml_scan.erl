@@ -9,7 +9,7 @@
         , coord/1
         , consumed/2
         , grapheme/1
-        , indented/2
+        , is_indented_at_least_by/2
         , end_of/1
         ]).
 
@@ -17,7 +17,7 @@
              , grapheme/0
              ]).
 
--include("yaml_private.hrl").
+-include("yaml_grapheme.hrl").
 
 -ifdef(TEST).
 -include_lib("eunit/include/eunit.hrl").
@@ -256,9 +256,9 @@ grapheme(#scan{g = G}) ->
 
 %=======================================================================
 
--spec indented(state(), integer()) -> boolean().
+-spec is_indented_at_least_by(state(), integer()) -> boolean().
 
-indented(#scan{c = C}, I) ->
+is_indented_at_least_by(#scan{c = C}, I) ->
     C >= I.
 
 %=======================================================================

@@ -3,12 +3,6 @@
 %% See LICENSE for licensing information.
 %=======================================================================
 
--type props() ::
-       #{ from := yaml:coord()
-        , anchor := term()
-        , tag := term()
-        }.
-
 -define(IS_WHITE(G),
     (       (G =:= $\s)
      orelse (G =:= $\t)

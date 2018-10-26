@@ -1,0 +1,16 @@
+@@@ Plain scalar as document
+
+@@@ source
+
+plain
+
+@@@ events
+
+{start_of_stream, {1, 1}}.
+{start_of_document, {1, 1}}.
+{plain, {1, 1}, {1, 6}, no_anchor, no_tag
+, [ {{1, 1}, {1, 6}, <<"plain">>}
+  ]
+}.
+{end_of_document, {2, 1}}.
+{end_of_stream, {2, 1}}.

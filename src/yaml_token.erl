@@ -20,15 +20,15 @@
         , error/3
         % INFO
         , consumed/2
-        , indented/2
         , indent_plus/2
+        , is_indented_at_least_by/2
         ]).
 
 -export_type([ state/0
              , construct/0
              ]).
 
--include("yaml_private.hrl").
+-include("yaml_grapheme.hrl").
 
 -ifdef(TEST).
 -include_lib("eunit/include/eunit.hrl").
@@ -52,7 +52,7 @@
 
 -opaque state() :: #token{}.
 
--type construct() :: fun((list(), map()) -> term()).
+-type construct() :: fun((list(), map()) -> {yaml_event:event(), list()}).
 
 %=======================================================================
 % START
@@ -91,7 +91,7 @@ start(Event, Context, Construct, Store)
 %=======================================================================
 
 -spec finish(state(), yaml_scan:state()) ->
-    {term(), list(), yaml_event:state()}.
+    {yaml_event:event(), list(), yaml_event:state()}.
 
 finish(T = #token{}, End) ->
     finish(keep(T, End)).
@@ -99,7 +99,7 @@ finish(T = #token{}, End) ->
 %=======================================================================
 
 -spec finish(state()) ->
-    {term(), list(), yaml_event:state()}.
+    {yaml_event:event(), list(), yaml_event:state()}.
 
 finish(T = #token{}) ->
     #token
@@ -210,18 +210,17 @@ consumed(#token{scan = Start}, End) ->
 
 %=======================================================================
 
--spec indented(state(), yaml_scan:state()) -> boolean().
-
-indented(#token{event = Event}, Scan) ->
-    yaml_event:indented(Event, Scan).
-
-%=======================================================================
-
 -spec indent_plus(state(), integer()) -> integer().
 
 indent_plus(#token{event = Event}, M) ->
     yaml_event:indent_plus(Event, M).
 
+%=======================================================================
+
+-spec is_indented_at_least_by(state(), yaml_scan:state()) -> boolean().
+
+is_indented_at_least_by(#token{event = Event}, Scan) ->
+    yaml_event:is_indented_at_least_by(Event, Scan).
 
 %=======================================================================
 

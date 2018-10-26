@@ -13,7 +13,7 @@
              , space_end_of/0
              ]).
 
--include("yaml_private.hrl").
+-include("yaml_grapheme.hrl").
 
 -ifdef(TEST).
 -include_lib("eunit/include/eunit.hrl").
@@ -40,7 +40,7 @@
 
 space(Event) ->
     Scan = yaml_event:scan(Event),
-    case yaml_scan:indented(Scan, 2) of
+    case yaml_scan:is_indented_at_least_by(Scan, 2) of
         true ->
             start_of_space(Event, Scan, in_line);
 

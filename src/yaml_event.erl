@@ -17,17 +17,20 @@
         ]).
 
 -export([ coord/1
-        , indented/2
+        , grapheme/1
+        , indent/1
         , indent_plus/2
+        , is_indented_at_least_by/2
         , scan/1
         , scan_to/2
         , emit/3
         , error/3
+        , top/1
         , push/4
         , pop/1
         ]).
 
--include("yaml_private.hrl").
+-include("yaml_grapheme.hrl").
 
 -ifdef(TEST).
 -export([ mock/1 ]).
@@ -46,7 +49,10 @@
     {start_of_stream, yaml:coord()} |
     {end_of_stream, yaml:coord()} |
     {start_of_document, yaml:coord()} |
-    {end_of_document, yaml:coord()}.
+    {end_of_document, yaml:coord()} |
+    {start_of_sequence, yaml:coord(), yaml:maybe_anchor(), yaml:maybe_tag()} |
+    {end_of_sequence, yaml:coord()} |
+    {plain, yaml:coord(), yaml:coord(), yaml:maybe_anchor(), yaml:maybe_tag(), list()}.
 
 -opaque state() :: #event{}.
 
@@ -123,10 +129,17 @@ coord(#event{scan = Scan}) ->
 
 %=======================================================================
 
--spec indented(state(), yaml_scan:state()) -> boolean().
+-spec grapheme(state()) -> yaml_scan:grapheme().
 
-indented(#event{indent = I}, Scan) ->
-    yaml_scan:indented(Scan, I).
+grapheme(#event{scan = Scan}) ->
+    yaml_scan:grapheme(Scan).
+
+%=======================================================================
+
+-spec indent(state()) -> integer().
+
+indent(#event{indent = N}) ->
+    N.
 
 %=======================================================================
 
@@ -135,6 +148,13 @@ indented(#event{indent = I}, Scan) ->
 indent_plus(#event{indent = N}, M) ->
     % N was already incremented when {content, N, _} was pushed onto stack
     N + M - 1.
+
+%=======================================================================
+
+-spec is_indented_at_least_by(state(), yaml_scan:state()) -> boolean().
+
+is_indented_at_least_by(#event{indent = I}, Scan) ->
+    yaml_scan:is_indented_at_least_by(Scan, I).
 
 %=======================================================================
 
@@ -166,6 +186,13 @@ error(Error, E = #event{}, Next) ->
 
 %=======================================================================
 
+-spec top(state()) -> {atom(), integer(), yaml:coord()}.
+
+top(#event{stack = [Top | _]}) ->
+    Top.
+
+%=======================================================================
+
 -spec push(state(), atom(), integer(), yaml:coord()) -> state().
 
 push(E = #event{}, Push, N, At) ->
@@ -174,8 +201,8 @@ push(E = #event{}, Push, N, At) ->
 
 %=======================================================================
 
--spec pop(state()) -> {{atom(), integer(), yaml:coord()}, state()}.
+-spec pop(state()) -> state().
 
-pop(E = #event{stack = [Top | Stack = [{_, N, _} | _]]}) ->
-    {Top, E#event{indent = N, stack = Stack}}.
+pop(E = #event{stack = [_ | Stack = [{_, N, _} | _]]}) ->
+    E#event{indent = N, stack = Stack}.
 

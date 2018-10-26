@@ -6,7 +6,7 @@
 -export([ scalar/3
         ]).
 
--include("yaml_private.hrl").
+-include("yaml_grapheme.hrl").
 
 %=======================================================================
 
@@ -14,8 +14,8 @@
 
 %=======================================================================
 
--spec scalar(yaml_event:state(), style(), props()) ->
-    {term(), list(), yaml_event:state()}.
+-spec scalar(yaml_event:state(), style(), yaml:props()) ->
+    {yaml_event:event(), list(), yaml_event:state()}.
 
 scalar(Event, Style, Props)
         when (Style =:= block orelse Style =:= flow) andalso
@@ -24,6 +24,8 @@ scalar(Event, Style, Props)
     first(Style, T, S).
 
 %=======================================================================
+
+-spec construct(list(), map()) -> {yaml_event:event(), list()}.
 
 construct([], _) ->
     % must not be empty

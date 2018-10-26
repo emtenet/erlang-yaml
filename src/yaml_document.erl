@@ -7,7 +7,7 @@
         , document_should_end/2
         ]).
 
--include("yaml_private.hrl").
+-include("yaml_grapheme.hrl").
 
 -ifdef(TEST).
 -include_lib("eunit/include/eunit.hrl").
@@ -19,8 +19,8 @@
 
 document_may_start(E0) ->
     case yaml_space:space(E0) of
-        %{Space = {indent_line, 0, 0}, E1} ->
-        %    start_of_document(E1, Space);
+        {Space = {indent_line, 0, 0}, E1} ->
+            start_of_document(E1, Space);
 
         {{end_of, stream, _}, E1} ->
             yaml_event:stream_should_end(E1)
@@ -28,12 +28,12 @@ document_may_start(E0) ->
 
 %=======================================================================
 
-%start_of_document(E, Space) ->
-%    At = yaml_event:coord(E),
-%    E1 = yaml_event:push(E, document, -1, At),
-%    Event = {start_of_document, At},
-%    Next = fun (EE) -> yaml_block:document_did_start(EE, Space) end,
-%    yaml_event:event(Event, E1, Next).
+start_of_document(E, Space) ->
+    At = yaml_event:coord(E),
+    E1 = yaml_event:push(E, document, -1, At),
+    Event = {start_of_document, At},
+    Next = fun (EE) -> yaml_block:document(EE, Space) end,
+    yaml_event:emit(Event, E1, Next).
 
 %=======================================================================
 
@@ -48,7 +48,7 @@ document_should_end(E, {end_of, stream, _}) ->
 %-----------------------------------------------------------------------
 
 document_did_end(E, At, Next) ->
-    {{document, -1, _}, E1} = yaml_event:pop(E),
+    {document, -1, _} = yaml_event:top(E),
     Event = {end_of_document, At},
-    yaml_event:emit(Event, E1, Next).
+    yaml_event:emit(Event, yaml_event:pop(E), Next).
 
