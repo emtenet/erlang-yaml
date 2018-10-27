@@ -45,12 +45,12 @@ detect_start(S, Context) ->
             detect_plain_or_separate(S, Context, sequence);
 
         _ ->
-            false
+            detect_plain(S, [Context])
     end.
 
 %=======================================================================
 
-detect_plain_or_separate(S0, _Context, Separate) ->
+detect_plain_or_separate(S0, Context, Separate) ->
     S = yaml_scan:next(S0),
     case yaml_scan:grapheme(S) of
         end_of_stream ->
@@ -61,6 +61,111 @@ detect_plain_or_separate(S0, _Context, Separate) ->
 
         G when ?IS_WHITE(G) ->
             Separate;
+
+        _ ->
+            detect_plain(S, [Context])
+    end.
+
+%=======================================================================
+
+detect_continue(S, [Context]) ->
+    detect_implicit(S, Context).
+
+%=======================================================================
+
+detect_implicit(S, Context) ->
+    case yaml_scan:grapheme(S) of
+        G when is_atom(G) ->
+            false;
+
+        $# ->
+            false;
+
+        $: when Context =:= flow ->
+            implicit_key;
+
+        $: ->
+            detect_implicit_colon(yaml_scan:next(S));
+
+        G when ?IS_WHITE(G) ->
+            detect_implicit(S, Context);
+
+        _ ->
+            false
+    end.
+
+%-----------------------------------------------------------------------
+
+detect_implicit_colon(S) ->
+    case yaml_scan:grapheme(S) of
+        G when is_atom(G) ->
+            implicit_key;
+
+        G when ?IS_WHITE(G) ->
+            implicit_key;
+
+        _ ->
+            false
+    end.
+
+%=======================================================================
+
+detect_plain(S, Stack) ->
+    case yaml_scan:grapheme(S) of
+        G when is_atom(G) ->
+            false;
+
+        $: ->
+            detect_plain_colon(S, yaml_scan:next(S), Stack);
+
+        G when ?IS_WHITE(G) ->
+            detect_plain_white(yaml_scan:next(S), Stack);
+
+        G when ?IS_PRINTABLE(G) ->
+            detect_plain(yaml_scan:next(S), Stack);
+
+        _ ->
+            false
+    end.
+
+%-----------------------------------------------------------------------
+
+detect_plain_white(S, Stack) ->
+    case yaml_scan:grapheme(S) of
+        G when is_atom(G) ->
+            false;
+
+        $# ->
+            false;
+
+        $: ->
+            detect_plain_colon(S, yaml_scan:next(S), Stack);
+
+        G when ?IS_WHITE(G) ->
+            detect_plain_white(yaml_scan:next(S), Stack);
+
+        G when ?IS_PRINTABLE(G) ->
+            detect_plain(yaml_scan:next(S), Stack);
+
+        _ ->
+            false
+    end.
+
+%-----------------------------------------------------------------------
+
+detect_plain_colon(Colon, S, Stack) ->
+    case yaml_scan:grapheme(S) of
+        G when is_atom(G) ->
+            detect_continue(Colon, Stack);
+
+        $: ->
+            detect_plain_colon(S, yaml_scan:next(S), Stack);
+
+        G when ?IS_WHITE(G) ->
+            detect_continue(Colon, Stack);
+
+        G when ?IS_PRINTABLE(G) ->
+            detect_plain(yaml_scan:next(S), Stack);
 
         _ ->
             false

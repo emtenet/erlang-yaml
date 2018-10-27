@@ -49,6 +49,14 @@ after_content(E) ->
 
 %-----------------------------------------------------------------------
 
+after_content(E, Space = {in_line, _, _}) ->
+    case yaml_event:top(E) of
+        {implicit_key, _, _} ->
+            after_implicit_key(E, Space);
+
+        _ ->
+            throw({not_implemented, space_trailing})
+    end;
 after_content(E, Space) ->
     after_block(E, Space).
 
@@ -97,8 +105,11 @@ after_block(E, Space) ->
 after_block_space(E, Space = {end_of, _, _}) ->
     after_block_pop(E, Space);
 after_block_space(E, Space = {indent_line, N, _}) ->
-    case yaml_event:top(E) of
-        {_, I, _} when I =:= N ->
+    case yaml_event:indent_next(E, N) of
+        false ->
+            after_block_pop(E, Space);
+
+        continue ->
             after_block_next(E, Space)
     end.
 
@@ -122,6 +133,12 @@ after_block_sequence(E, _Space) ->
 
 after_block_pop(E, Space) ->
     case yaml_event:top(E) of
+        {implicit_value, _, _} ->
+            Next = fun (EE) -> after_block(EE, Space) end,
+            At = yaml_event:coord(E),
+            Event = {end_of_mapping, At},
+            yaml_event:emit(Event, yaml_event:pop(E), Next);
+
         {sequence, _, _} ->
             Next = fun (EE) -> after_block(EE, Space) end,
             At = yaml_event:coord(E),
@@ -147,8 +164,12 @@ swap_indicator(E, Indicator, Block) ->
 
 %-----------------------------------------------------------------------
 
-after_indicator(E, Space = {in_line, _, _}) ->
+after_indicator(E, Space = {in_line, M, _}) ->
     case yaml_implicit:detect(E, block) of
+        implicit_key ->
+            {_, N, _} = yaml_event:top(E),
+            implicit_key_first(E, Space, N + 1 + M);
+
         false ->
             content_block(E, Space)
     end;
@@ -165,6 +186,37 @@ after_indicator_indent(E, Space, N) ->
         false ->
             content_block(E, Space)
     end.
+
+%=======================================================================
+
+implicit_key_first(E, Space, N) ->
+    At = yaml_event:coord(E),
+    Event = {start_of_mapping, At, no_anchor, no_tag},
+    Next = fun (EE) -> content_start(EE, Space, At) end,
+    Pushed = yaml_event:push(E, implicit_key, N, At),
+    yaml_event:emit(Event, Pushed, Next).
+
+%=======================================================================
+
+after_implicit_key(E, _Space) ->
+    S = yaml_event:scan(E),
+    case yaml_scan:grapheme(S) of
+        $: ->
+            Z = yaml_scan:next(S),
+            {Space1, E1} = yaml_space:space(yaml_event:scan_to(E, Z)),
+            implicit_value_next(E1, Space1);
+
+        _ ->
+            throw({not_implemented, expecting_implicit_colon})
+    end.
+
+%-----------------------------------------------------------------------
+
+implicit_value_next(E, Space) ->
+    At = yaml_event:coord(E),
+    {implicit_key, N, _} = yaml_event:top(E),
+    Pushed = yaml_event:push(yaml_event:pop(E), implicit_value, N, At),
+    content_start(Pushed, Space, At).
 
 %=======================================================================
 

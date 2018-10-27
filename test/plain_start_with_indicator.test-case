@@ -1,0 +1,113 @@
+@@@ Error - Plain Start
+
+@@@ source
+
+- ,key: ,value
+- ]key: ]value
+- }key: }value
+- %key: %value
+- @key: @value
+- `key: `value
+
+@@@ events
+
+{start_of_stream, {1, 1}}.
+{start_of_document, {1, 1}}.
+{start_of_sequence, {1, 1}, no_anchor, no_tag}.
+{start_of_mapping, {1, 3}, no_anchor, no_tag}.
+{plain, {1, 3}, {1, 7}, no_anchor, no_tag
+, [ {{1, 3}, {1, 7}, <<",key">>} ]
+}.
+{error
+, {plain_start_with_indicator, {1, 3}, {1, 4}, {plain, {1, 3}, {1, 7}}}
+}.
+{plain, {1, 9}, {1, 15}, no_anchor, no_tag
+, [ {{1, 9}, {1, 15}, <<",value">>} ]
+}.
+{error
+, {plain_start_with_indicator, {1, 9}, {1, 10}, {plain, {1, 9}, {1, 15}}}
+}.
+{end_of_mapping, {2, 1}}.
+{start_of_mapping, {2, 3}, no_anchor, no_tag}.
+{plain, {2, 3}, {2, 7}, no_anchor, no_tag
+, [ {{2, 3}, {2, 7}, <<"]key">>} ]
+}.
+{error
+, {plain_start_with_indicator, {2, 3}, {2, 4}, {plain, {2, 3}, {2, 7}}}
+}.
+{plain, {2, 9}, {2, 15}, no_anchor, no_tag
+, [ {{2, 9}, {2, 15}, <<"]value">>} ]
+}.
+{error
+, {plain_start_with_indicator, {2, 9}, {2, 10}, {plain, {2, 9}, {2, 15}}}
+}.
+{end_of_mapping, {3, 1}}.
+{start_of_mapping, {3, 3}, no_anchor, no_tag}.
+{plain, {3, 3}, {3, 7}, no_anchor, no_tag
+, [ {{3, 3}, {3, 7}, <<"}key">>} ]
+}.
+{error
+, {plain_start_with_indicator, {3, 3}, {3, 4}, {plain, {3, 3}, {3, 7}}}
+}.
+{plain, {3, 9}, {3, 15}, no_anchor, no_tag
+, [ {{3, 9}, {3, 15}, <<"}value">>} ]
+}.
+{error
+, {plain_start_with_indicator, {3, 9}, {3, 10}, {plain, {3, 9}, {3, 15}}}
+}.
+{end_of_mapping, {4, 1}}.
+{start_of_mapping, {4, 3}, no_anchor, no_tag}.
+{plain, {4, 3}, {4, 7}, no_anchor, no_tag
+, [ {{4, 3}, {4, 7}, <<"%key">>} ]
+}.
+{error
+, {plain_start_with_indicator, {4, 3}, {4, 4}, {plain, {4, 3}, {4, 7}}}
+}.
+{plain, {4, 9}, {4, 15}, no_anchor, no_tag
+, [ {{4, 9}, {4, 15}, <<"%value">>} ]
+}.
+{error
+, {plain_start_with_indicator, {4, 9}, {4, 10}, {plain, {4, 9}, {4, 15}}}
+}.
+{end_of_mapping, {5, 1}}.
+{start_of_mapping, {5, 3}, no_anchor, no_tag}.
+{plain, {5, 3}, {5, 7}, no_anchor, no_tag
+, [ {{5, 3}, {5, 7}, <<"@key">>} ]
+}.
+{error
+, {plain_start_with_indicator, {5, 3}, {5, 4}, {plain, {5, 3}, {5, 7}}}
+}.
+{plain, {5, 9}, {5, 15}, no_anchor, no_tag
+, [ {{5, 9}, {5, 15}, <<"@value">>} ]
+}.
+{error
+, {plain_start_with_indicator, {5, 9}, {5, 10}, {plain, {5, 9}, {5, 15}}}
+}.
+{end_of_mapping, {6, 1}}.
+{start_of_mapping, {6, 3}, no_anchor, no_tag}.
+{plain, {6, 3}, {6, 7}, no_anchor, no_tag
+, [ {{6, 3}, {6, 7}, <<"`key">>} ]
+}.
+{error
+, {plain_start_with_indicator, {6, 3}, {6, 4}, {plain, {6, 3}, {6, 7}}}
+}.
+{plain, {6, 9}, {6, 15}, no_anchor, no_tag
+, [ {{6, 9}, {6, 15}, <<"`value">>} ]
+}.
+{error
+, {plain_start_with_indicator, {6, 9}, {6, 10}, {plain, {6, 9}, {6, 15}}}
+}.
+{end_of_mapping, {7, 1}}.
+{end_of_sequence, {7, 1}}.
+{end_of_document, {7, 1}}.
+{end_of_stream, {7, 1}}.
+
+@@@ errors
+
+-- YAML SYNTAX ----------------------------------------------------------------
+
+A plain scalar must not begin with an indicator:
+
+1| - ,key: ,value
+     ^
+

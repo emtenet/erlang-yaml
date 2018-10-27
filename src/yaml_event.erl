@@ -20,6 +20,7 @@
         , grapheme/1
         , indent/1
         , indent_plus/2
+        , indent_next/2
         , is_indented_at_least_by/2
         , scan/1
         , scan_to/2
@@ -148,6 +149,26 @@ indent(#event{indent = N}) ->
 indent_plus(#event{indent = N}, M) ->
     % N was already incremented when {content, N, _} was pushed onto stack
     N + M - 1.
+
+%=======================================================================
+
+-spec indent_next(state(), integer()) ->
+    continue | less_indented | more_indented | false.
+
+indent_next(E = #event{}, N) ->
+    case E#event.stack of
+        [_, {_, P, _} | _] when N =< P ->
+            false;
+
+        [{_, I, _} | _] when N < I ->
+            less_indented;
+
+        [{_, I, _} | _] when N > I ->
+            more_indented;
+
+        _ ->
+            continue
+    end.
 
 %=======================================================================
 

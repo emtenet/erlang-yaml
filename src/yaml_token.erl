@@ -12,7 +12,7 @@
         , set/3
         , get/2
         % ERROR
-        , error_at/4
+        , error_range/4
         % CONSUME
         , keep/2
         , keep/3
@@ -151,10 +151,17 @@ get(#token{store = Store}, Key) ->
 % ERROR
 %=======================================================================
 
--spec error_at(state(), any(), yaml:coord(), yaml:coord()) -> state().
+-spec error_range(state(), any(), From, Thru) -> state()
+    when
+        From :: yaml:coord() | yaml_scan:state(),
+        Thru :: yaml:coord() | yaml_scan:state().
 
-error_at(T = #token{errors = Es}, E, From, Thru) ->
-    T#token{errors = [{E, From, Thru} | Es]}.
+error_range(T = #token{errors = Es}, E, From = {_, _}, Thru = {_, _}) ->
+    T#token{errors = [{E, From, Thru} | Es]};
+error_range(T, E, From = {_, _}, Thru) ->
+    error_range(T, E, From, yaml_scan:coord(Thru));
+error_range(T, E, From, Thru) ->
+    error_range(T, E, yaml_scan:coord(From), Thru).
 
 %=======================================================================
 % CONSUME
