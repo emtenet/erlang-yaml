@@ -60,6 +60,11 @@
      orelse (G =:= $})
     )).
 
+-define(IS_RESERVED_INDICATOR(C),
+    (       (C =:= $@)
+     orelse (C =:= $`)
+    )).
+
 % Spec "Plain scalars must not begin with most indicators, ..."
 % Allow these indicators but with an error
 -define(IS_PLAIN_ERROR_INDICATOR(C),
@@ -67,7 +72,5 @@
      orelse (C =:= $])
      orelse (C =:= $})
      orelse (C =:= $%)
-     orelse (C =:= $@)
-     orelse (C =:= $`)
     )).
 

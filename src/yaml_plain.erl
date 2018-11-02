@@ -59,6 +59,11 @@ first(Style, T, S) ->
         G when ?IS_PLAIN_CHECK_INDICATOR(G) ->
             first_check(Style, T, yaml_scan:next(S));
 
+        G when ?IS_RESERVED_INDICATOR(G) ->
+            Z = yaml_scan:next(S),
+            T1 = yaml_token:error_range(T, reserved_indicator, S, Z),
+            text(Style, T1, Z);
+
         G when ?IS_PLAIN_ERROR_INDICATOR(G) ->
             Z = yaml_scan:next(S),
             T1 = yaml_token:error_range(T, plain_start_with_indicator, S, Z),
@@ -279,6 +284,7 @@ simple_test_() ->
             )
         ]
       || G <- ?INDICATOR
+       , not ?IS_RESERVED_INDICATOR(G)
        , not ?IS_PLAIN_CHECK_INDICATOR(G)
        , not ?IS_PLAIN_ERROR_INDICATOR(G) ]
 

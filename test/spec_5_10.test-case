@@ -1,0 +1,33 @@
+@@@ Example 5.10 Invalid use of Reserved Indicators
+
+@@@ source
+
+commercial-at: @text
+grave-accent: `text
+
+@@@ events
+
+{start_of_stream, {1, 1}}.
+{start_of_document, {1, 1}}.
+{start_of_mapping, {1, 1}, no_anchor, no_tag}.
+{plain, {1, 1}, {1, 14}, no_anchor, no_tag
+, [ {{1, 1}, {1, 14}, <<"commercial-at">>} ]
+}.
+{plain, {1, 16}, {1, 21}, no_anchor, no_tag
+, [ {{1, 16}, {1, 21}, <<"@text">>} ]
+}.
+{error
+, {reserved_indicator, {1, 16}, {1, 17}, {plain, {1, 16}, {1, 21}}}
+}.
+{plain, {2, 1}, {2, 13}, no_anchor, no_tag
+, [ {{2, 1}, {2, 13}, <<"grave-accent">>} ]
+}.
+{plain, {2, 15}, {2, 20}, no_anchor, no_tag
+, [ {{2, 15}, {2, 20}, <<"`text">>} ]
+}.
+{error
+, {reserved_indicator, {2, 15}, {2, 16}, {plain, {2, 15}, {2, 20}}}
+}.
+{end_of_mapping, {3, 1}}.
+{end_of_document, {3, 1}}.
+{end_of_stream, {3, 1}}.

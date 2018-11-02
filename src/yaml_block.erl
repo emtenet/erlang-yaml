@@ -117,8 +117,19 @@ after_block_space(E, Space = {indent_line, N, _}) ->
 
 after_block_next(E, Space) ->
     case yaml_event:top(E) of
+        {implicit_value, N, _} ->
+            after_block_mapping(E, Space, N);
+
         {sequence, _, _} ->
             after_block_sequence(E, Space)
+    end.
+
+%-----------------------------------------------------------------------
+
+after_block_mapping(E, Space, N) ->
+    case yaml_implicit:detect(E, block) of
+        implicit_key ->
+            implicit_key_next(E, Space, N)
     end.
 
 %-----------------------------------------------------------------------
@@ -208,6 +219,14 @@ implicit_key_first(E, Space, N) ->
     Next = fun (EE) -> content_start(EE, Space, At) end,
     Pushed = yaml_event:push(E, implicit_key, N, At),
     yaml_event:emit(Event, Pushed, Next).
+
+%-----------------------------------------------------------------------
+
+implicit_key_next(E, Space, N) ->
+    At = yaml_event:coord(E),
+    Popped = yaml_event:pop(E),
+    Pushed = yaml_event:push(Popped, implicit_key, N, At),
+    content_start(Pushed, Space, At).
 
 %=======================================================================
 

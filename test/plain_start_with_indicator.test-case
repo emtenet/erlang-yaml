@@ -6,8 +6,6 @@
 - ]key: ]value
 - }key: }value
 - %key: %value
-- @key: @value
-- `key: `value
 
 @@@ events
 
@@ -70,37 +68,9 @@
 , {plain_start_with_indicator, {4, 9}, {4, 10}, {plain, {4, 9}, {4, 15}}}
 }.
 {end_of_mapping, {5, 1}}.
-{start_of_mapping, {5, 3}, no_anchor, no_tag}.
-{plain, {5, 3}, {5, 7}, no_anchor, no_tag
-, [ {{5, 3}, {5, 7}, <<"@key">>} ]
-}.
-{error
-, {plain_start_with_indicator, {5, 3}, {5, 4}, {plain, {5, 3}, {5, 7}}}
-}.
-{plain, {5, 9}, {5, 15}, no_anchor, no_tag
-, [ {{5, 9}, {5, 15}, <<"@value">>} ]
-}.
-{error
-, {plain_start_with_indicator, {5, 9}, {5, 10}, {plain, {5, 9}, {5, 15}}}
-}.
-{end_of_mapping, {6, 1}}.
-{start_of_mapping, {6, 3}, no_anchor, no_tag}.
-{plain, {6, 3}, {6, 7}, no_anchor, no_tag
-, [ {{6, 3}, {6, 7}, <<"`key">>} ]
-}.
-{error
-, {plain_start_with_indicator, {6, 3}, {6, 4}, {plain, {6, 3}, {6, 7}}}
-}.
-{plain, {6, 9}, {6, 15}, no_anchor, no_tag
-, [ {{6, 9}, {6, 15}, <<"`value">>} ]
-}.
-{error
-, {plain_start_with_indicator, {6, 9}, {6, 10}, {plain, {6, 9}, {6, 15}}}
-}.
-{end_of_mapping, {7, 1}}.
-{end_of_sequence, {7, 1}}.
-{end_of_document, {7, 1}}.
-{end_of_stream, {7, 1}}.
+{end_of_sequence, {5, 1}}.
+{end_of_document, {5, 1}}.
+{end_of_stream, {5, 1}}.
 
 @@@ errors
 
