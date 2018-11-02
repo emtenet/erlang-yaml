@@ -220,6 +220,14 @@ space_test_() ->
               {1, 2, <<" # ">>},
               {end_of, stream, {1, 5}},
               {1, 5, <<>>})
+    , ?_space("End of stream in indent",
+              {1, 2, <<" ">>},
+              {end_of, stream, {1, 3}},
+              {1, 3, <<>>})
+    , ?_space("End of stream in whitespace",
+              {1, 2, <<" \t">>},
+              {end_of, stream, {1, 4}},
+              {1, 4, <<>>})
     , ?_space("End of document (break)",
               {1, 2, <<"\n...\n">>},
               {end_of, document, {2, 1}},
