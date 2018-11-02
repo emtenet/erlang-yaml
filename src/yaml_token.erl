@@ -21,7 +21,7 @@
         % INFO
         , consumed/2
         , indent_plus/2
-        , is_indented_at_least_by/2
+        , is_indented/2
         ]).
 
 -export_type([ state/0
@@ -224,10 +224,10 @@ indent_plus(#token{event = Event}, M) ->
 
 %=======================================================================
 
--spec is_indented_at_least_by(state(), yaml_scan:state()) -> boolean().
+-spec is_indented(state(), yaml_scan:state()) -> boolean().
 
-is_indented_at_least_by(#token{event = Event}, Scan) ->
-    yaml_event:is_indented_at_least_by(Event, Scan).
+is_indented(#token{event = Event}, Scan) ->
+    yaml_event:is_indented(Event, Scan).
 
 %=======================================================================
 

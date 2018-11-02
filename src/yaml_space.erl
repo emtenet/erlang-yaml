@@ -40,12 +40,12 @@
 
 space(Event) ->
     Scan = yaml_event:scan(Event),
-    case yaml_scan:is_indented_at_least_by(Scan, 2) of
+    case yaml_scan:is_start_of_line(Scan) of
         true ->
-            start_of_space(Event, Scan, in_line);
+            start_of_line(Event, Scan);
 
         false ->
-            start_of_line(Event, Scan)
+            start_of_space(Event, Scan, in_line)
     end.
 
 %-----------------------------------------------------------------------

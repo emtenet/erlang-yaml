@@ -21,7 +21,7 @@
         , indent/1
         , indent_plus/2
         , indent_next/2
-        , is_indented_at_least_by/2
+        , is_indented/2
         , scan/1
         , scan_to/2
         , emit/3
@@ -53,6 +53,8 @@
     {end_of_document, yaml:coord()} |
     {start_of_sequence, yaml:coord(), yaml:maybe_anchor(), yaml:maybe_tag()} |
     {end_of_sequence, yaml:coord()} |
+    {start_of_mapping, yaml:coord(), yaml:maybe_anchor(), yaml:maybe_tag()} |
+    {end_of_mapping, yaml:coord()} |
     {plain, yaml:coord(), yaml:coord(), yaml:maybe_anchor(), yaml:maybe_tag(), list()}.
 
 -opaque state() :: #event{}.
@@ -172,9 +174,9 @@ indent_next(E = #event{}, N) ->
 
 %=======================================================================
 
--spec is_indented_at_least_by(state(), yaml_scan:state()) -> boolean().
+-spec is_indented(state(), yaml_scan:state()) -> boolean().
 
-is_indented_at_least_by(#event{indent = I}, Scan) ->
+is_indented(#event{indent = I}, Scan) ->
     yaml_scan:is_indented_at_least_by(Scan, I).
 
 %=======================================================================

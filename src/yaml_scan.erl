@@ -10,6 +10,7 @@
         , consumed/2
         , grapheme/1
         , is_indented_at_least_by/2
+        , is_start_of_line/1
         , end_of/1
         ]).
 
@@ -259,7 +260,20 @@ grapheme(#scan{g = G}) ->
 -spec is_indented_at_least_by(state(), integer()) -> boolean().
 
 is_indented_at_least_by(#scan{c = C}, I) ->
-    C >= I.
+    % NOTE:
+    % - C is one (1) based
+    % - I is zero (0) based
+    % For example:
+    %   To be indented at least by 2 (spaces),
+    %   Column must be 3 or more
+    C > I.
+
+%=======================================================================
+
+-spec is_start_of_line(state()) -> boolean().
+
+is_start_of_line(#scan{c = C}) ->
+    C =:= 1.
 
 %=======================================================================
 
