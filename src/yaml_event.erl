@@ -155,21 +155,28 @@ indent_plus(#event{indent = N}, M) ->
 %=======================================================================
 
 -spec indent_next(state(), integer()) ->
-    continue | less_indented | more_indented | false.
+    pop |
+    {atom(), integer()} |
+    {atom(), not_indented, integer()} |
+    {atom(), less_indented, integer()} |
+    {atom(), more_indented, integer()}.
 
 indent_next(E = #event{}, N) ->
     case E#event.stack of
+        [{A, I, _}, {_, I, _} | _] when N =:= I ->
+            {A, not_indented, I};
+
+        [{A, I, _} | _] when N =:= I ->
+            {A, I};
+
         [_, {_, P, _} | _] when N =< P ->
-            false;
+            pop;
 
-        [{_, I, _} | _] when N < I ->
-            less_indented;
+        [{A, I, _} | _] when N < I ->
+            {A, less_indented, I};
 
-        [{_, I, _} | _] when N > I ->
-            more_indented;
-
-        _ ->
-            continue
+        [{A, I, _} | _] when N > I ->
+            {A, more_indented, I}
     end.
 
 %=======================================================================
