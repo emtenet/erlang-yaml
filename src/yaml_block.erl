@@ -183,8 +183,8 @@ after_block_pop(E, Space) ->
 
 after_block_pop_end_of(E, Space, EndOf) ->
     Next = fun (EE) -> after_block(EE, Space) end,
-    At = yaml_event:coord(E),
-    Event = {EndOf, At},
+    {R, _} = yaml_event:coord(E),
+    Event = {EndOf, {R, 1}},
     yaml_event:emit(Event, yaml_event:pop(E), Next).
 
 %=======================================================================
@@ -211,6 +211,10 @@ push_indicator(E, Indicator, Block, N) ->
 
 after_indicator(E, {in_line, M, _}) ->
     case yaml_implicit:detect(E, block) of
+        explicit_key ->
+            {_, N, _} = yaml_event:top(E),
+            explicit_key_first(E, N + 1 + M);
+
         implicit_key ->
             {_, N, _} = yaml_event:top(E),
             implicit_key_first(E, N + 1 + M);

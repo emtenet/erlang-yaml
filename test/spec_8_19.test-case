@@ -1,0 +1,42 @@
+@@@ Example 8.19 Compact Block Mappings
+
+@@@ source
+
+- sun: yellow
+- ? earth: blue
+  : moon: white
+
+@@@ events
+
+{start_of_stream, {1, 1}}.
+{start_of_document, {1, 1}}.
+{start_of_sequence, {1, 1}, no_anchor, no_tag}.
+{start_of_mapping, {1, 3}, no_anchor, no_tag}.
+{plain, {1, 3}, {1, 6}, no_anchor, no_tag
+, [ {{1, 3}, {1, 6}, <<"sun">>} ]
+}.
+{plain, {1, 8}, {1, 14}, no_anchor, no_tag
+, [ {{1, 8}, {1, 14}, <<"yellow">>} ]
+}.
+{end_of_mapping, {2, 1}}.
+{start_of_mapping, {2, 3}, no_anchor, no_tag}.
+{start_of_mapping, {2, 5}, no_anchor, no_tag}.
+{plain, {2, 5}, {2, 10}, no_anchor, no_tag
+, [ {{2, 5}, {2, 10}, <<"earth">>} ]
+}.
+{plain, {2, 12}, {2, 16}, no_anchor, no_tag
+, [ {{2, 12}, {2, 16}, <<"blue">>} ]
+}.
+{end_of_mapping, {3, 1}}.
+{start_of_mapping, {3, 5}, no_anchor, no_tag}.
+{plain, {3, 5}, {3, 9}, no_anchor, no_tag
+, [ {{3, 5}, {3, 9}, <<"moon">>} ]
+}.
+{plain, {3, 11}, {3, 16}, no_anchor, no_tag
+, [ {{3, 11}, {3, 16}, <<"white">>} ]
+}.
+{end_of_mapping, {4, 1}}.
+{end_of_mapping, {4, 1}}.
+{end_of_sequence, {4, 1}}.
+{end_of_document, {4, 1}}.
+{end_of_stream, {4, 1}}.
