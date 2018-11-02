@@ -31,8 +31,23 @@ construct([], _) ->
     % must not be empty
     error(pre_condition);
 construct(Ps, #{ from := From, thru := Thru, anchor := Anchor, tag := Tag}) ->
-    Token = {plain, From, Thru, Anchor, Tag, Ps},
+    Folds = construct_folds(Ps, []),
+    Token = {plain, From, Thru, Anchor, Tag, Folds},
     {Token, []}.
+
+%-----------------------------------------------------------------------
+
+construct_folds([{_, T, fold}, {F, _, fold} | Rest = [{_, _, B} | _]], Acc)
+        when is_binary(B) ->
+    construct_folds(Rest, [{F, T, <<"\n">>} | Acc]);
+construct_folds([{F, T, fold} | Rest = [{_, _, fold} | _]], Acc) ->
+    construct_folds(Rest, [{F, T, <<"\n">>} | Acc]);
+construct_folds([{F, T, fold} | Rest], Acc) ->
+    construct_folds(Rest, [{F, T, <<" ">>} | Acc]);
+construct_folds([P | Rest], Acc) ->
+    construct_folds(Rest, [P | Acc]);
+construct_folds([], Acc) ->
+    Acc.
 
 %=======================================================================
 
@@ -74,6 +89,9 @@ first_check(Style, T, S) ->
 
 text(Style, T, S) ->
     case yaml_scan:grapheme(S) of
+        break ->
+            fold(Style, T, S, yaml_scan:next(S));
+
         $: ->
             text_colon(Style, T, S, yaml_scan:next(S));
 
@@ -91,6 +109,9 @@ text(Style, T, S) ->
 
 text_colon(Style, T, White, S) ->
     case yaml_scan:grapheme(S) of
+        break ->
+            yaml_token:finish(T, White);
+
         G when ?IS_WHITE(G) ->
             yaml_token:finish(T, White);
 
@@ -105,6 +126,9 @@ text_colon(Style, T, White, S) ->
 
 text_white(Style, T, White, S) ->
     case yaml_scan:grapheme(S) of
+        break ->
+            fold(Style, T, White, yaml_scan:next(S));
+
         $: ->
             text_colon(Style, T, White, yaml_scan:next(S));
 
@@ -119,6 +143,82 @@ text_white(Style, T, White, S) ->
 
         _ ->
             yaml_token:finish(T, White)
+    end.
+
+%=======================================================================
+
+fold(Style, T, White, S) ->
+    Abort = {T, White},
+    fold_break(Style, Abort, yaml_token:keep(T, White), White, S).
+
+%-----------------------------------------------------------------------
+
+fold_abort({T, White}) ->
+    yaml_token:finish(T, White).
+
+%-----------------------------------------------------------------------
+
+fold_break(Style, Abort, T, White, S) ->
+    case yaml_scan:end_of(S) of
+        {_, _, _} ->
+            fold_abort(Abort);
+
+        false ->
+            fold_indent(Style, Abort, T, White, S)
+    end.
+
+%-----------------------------------------------------------------------
+
+fold_indent(Style, Abort, T, White, S) ->
+    case yaml_scan:grapheme(S) of
+        end_of_stream ->
+            fold_abort(Abort);
+
+        break ->
+            Kept = yaml_token:keep(T, fold, S),
+            fold_break(Style, Abort, Kept, S, yaml_scan:next(S));
+
+        $\s ->
+            fold_indent(Style, Abort, T, White, yaml_scan:next(S));
+
+        $\t ->
+            Indented = yaml_token:is_indented(T, S),
+            fold_white(Style, Abort, T, White, Indented, yaml_scan:next(S));
+
+        G when ?IS_PRINTABLE(G) ->
+            case yaml_token:is_indented(T, S) of
+                true ->
+                    Kept = yaml_token:keep(T, fold, S),
+                    text(Style, Kept, S);
+
+                false ->
+                    fold_abort(Abort)
+            end
+    end.
+
+%-----------------------------------------------------------------------
+
+fold_white(Style, Abort, T, White, Indented, S) ->
+    case yaml_scan:grapheme(S) of
+        end_of_stream ->
+            fold_abort(Abort);
+
+        break ->
+            Kept = yaml_token:keep(T, fold, S),
+            fold_break(Style, Abort, Kept, S, yaml_scan:next(S));
+
+        G when ?IS_WHITE(G) ->
+            fold_white(Style, Abort, T, White, Indented, yaml_scan:next(S));
+
+        G when ?IS_PRINTABLE(G) ->
+            case Indented of
+                true ->
+                    Kept = yaml_token:keep(T, fold, S),
+                    text(Style, Kept, S);
+
+                false ->
+                    fold_abort(Abort)
+            end
     end.
 
 %=======================================================================
