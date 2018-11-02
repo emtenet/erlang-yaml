@@ -148,6 +148,16 @@ after_block_pop(E, Space) ->
 
 %=======================================================================
 
+after_implicit(E, Space = {in_line, _, _}) ->
+    case yaml_implicit:detect(E, block) of
+        false ->
+            content_block(E, Space)
+    end;
+after_implicit(E, Space) ->
+    after_indicator(E, Space).
+
+%=======================================================================
+
 push_indicator(E, Indicator, Block, N) ->
     S = yaml_event:scan(E),
     Indicator = yaml_scan:grapheme(S),
@@ -180,6 +190,9 @@ after_indicator(E, Space = {indent_line, N, _}) ->
 
 after_indicator_indent(E, Space, N) ->
     case yaml_implicit:detect(E, block) of
+        implicit_key ->
+            implicit_key_first(E, Space, N);
+
         sequence ->
             sequence_first(E, N);
 
@@ -216,7 +229,7 @@ implicit_value_next(E, Space) ->
     At = yaml_event:coord(E),
     {implicit_key, N, _} = yaml_event:top(E),
     Pushed = yaml_event:push(yaml_event:pop(E), implicit_value, N, At),
-    content_start(Pushed, Space, At).
+    after_implicit(Pushed, Space).
 
 %=======================================================================
 
