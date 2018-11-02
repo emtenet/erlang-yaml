@@ -31,23 +31,29 @@ construct([], _) ->
     % must not be empty
     error(pre_condition);
 construct(Ps, #{ from := From, thru := Thru, anchor := Anchor, tag := Tag}) ->
-    Folds = construct_folds(Ps, []),
+    Folds = fold_by_space(Ps, []),
     Token = {plain, From, Thru, Anchor, Tag, Folds},
     {Token, []}.
 
 %-----------------------------------------------------------------------
 
-construct_folds([{_, T, fold}, {F, _, fold} | Rest = [{_, _, B} | _]], Acc)
+fold_by_space([{F, T, fold}, Text = {_, _, B} | Rest], Acc)
         when is_binary(B) ->
-    construct_folds(Rest, [{F, T, <<"\n">>} | Acc]);
-construct_folds([{F, T, fold} | Rest = [{_, _, fold} | _]], Acc) ->
-    construct_folds(Rest, [{F, T, <<"\n">>} | Acc]);
-construct_folds([{F, T, fold} | Rest], Acc) ->
-    construct_folds(Rest, [{F, T, <<" ">>} | Acc]);
-construct_folds([P | Rest], Acc) ->
-    construct_folds(Rest, [P | Acc]);
-construct_folds([], Acc) ->
+    fold_by_space(Rest, [Text, {F, T, <<" ">>} | Acc]);
+fold_by_space(Rest = [{_, _, fold} | _], Acc) ->
+    fold_by_line(Rest, Acc);
+fold_by_space([Text | Rest], Acc) ->
+    fold_by_space(Rest, [Text | Acc]);
+fold_by_space([], Acc) ->
     Acc.
+
+%-----------------------------------------------------------------------
+
+fold_by_line([{_, T, fold}, {F, _, fold}, Text = {_, _, B} | Rest], Acc)
+        when is_binary(B) ->
+    fold_by_space(Rest, [Text, {F, T, <<"\n">>} | Acc]);
+fold_by_line([{F, T, fold} | Rest], Acc) ->
+    fold_by_line(Rest, [{F, T, <<"\n">>} | Acc]).
 
 %=======================================================================
 
