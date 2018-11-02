@@ -169,18 +169,23 @@ after_block_sequence_or_pop(E, Space, N) ->
 
 after_block_pop(E, Space) ->
     case yaml_event:top(E) of
+        {explicit_value, _, _} ->
+            after_block_pop_end_of(E, Space, end_of_mapping);
+
         {implicit_value, _, _} ->
-            Next = fun (EE) -> after_block(EE, Space) end,
-            At = yaml_event:coord(E),
-            Event = {end_of_mapping, At},
-            yaml_event:emit(Event, yaml_event:pop(E), Next);
+            after_block_pop_end_of(E, Space, end_of_mapping);
 
         {sequence, _, _} ->
-            Next = fun (EE) -> after_block(EE, Space) end,
-            At = yaml_event:coord(E),
-            Event = {end_of_sequence, At},
-            yaml_event:emit(Event, yaml_event:pop(E), Next)
+            after_block_pop_end_of(E, Space, end_of_sequence)
     end.
+
+%-----------------------------------------------------------------------
+
+after_block_pop_end_of(E, Space, EndOf) ->
+    Next = fun (EE) -> after_block(EE, Space) end,
+    At = yaml_event:coord(E),
+    Event = {EndOf, At},
+    yaml_event:emit(Event, yaml_event:pop(E), Next).
 
 %=======================================================================
 
@@ -209,6 +214,10 @@ after_indicator(E, {in_line, M, _}) ->
         implicit_key ->
             {_, N, _} = yaml_event:top(E),
             implicit_key_first(E, N + 1 + M);
+
+        sequence ->
+            {_, N, _} = yaml_event:top(E),
+            sequence_first(E, N + 1 + M);
 
         false ->
             content_block(E)
