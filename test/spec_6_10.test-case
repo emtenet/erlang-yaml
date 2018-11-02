@@ -1,9 +1,9 @@
-@@@ Comment in stream
+@@@ Example 6.10 Comment Lines
 
 @@@ source
 
- 	 # comment
-# another
+  # Comment
+   
 
 
 @@@ events

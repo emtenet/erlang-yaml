@@ -1,0 +1,10 @@
+@@@ Example 5.5 Comment Indicator
+
+@@@ source
+
+# Comment only.
+
+@@@ events
+
+{start_of_stream, {1, 1}}.
+{end_of_stream, {2, 1}}.
