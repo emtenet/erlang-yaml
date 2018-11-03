@@ -22,6 +22,43 @@ document(E, Space = {indent_line, _, _}) ->
 
 %=======================================================================
 
+detect_block(E, N) ->
+    case yaml_implicit:detect(E, block) of
+        explicit_key ->
+            explicit_key_first(E, N);
+
+        implicit_key ->
+            implicit_key_first(E, N);
+
+        sequence ->
+            sequence_first(E, N);
+
+        false ->
+            content_block(E)
+    end.
+
+%-----------------------------------------------------------------------
+
+detect_compact_block(E, M) ->
+    case yaml_implicit:detect(E, block) of
+        explicit_key ->
+            {_, N, _} = yaml_event:top(E),
+            explicit_key_first(E, N + 1 + M);
+
+        implicit_key ->
+            {_, N, _} = yaml_event:top(E),
+            implicit_key_first(E, N + 1 + M);
+
+        sequence ->
+            {_, N, _} = yaml_event:top(E),
+            sequence_first(E, N + 1 + M);
+
+        false ->
+            content_block(E)
+    end.
+
+%=======================================================================
+
 content_block(E) ->
     N = yaml_event:indent(E),
     At = yaml_event:coord(E),
@@ -158,6 +195,10 @@ after_block_explicit_key(E, N) ->
 
 after_block_mapping(E, N) ->
     case yaml_implicit:detect(E, block) of
+        explicit_value ->
+            Next = fun (EE) -> after_block_explicit_key(EE, N) end,
+            explicit_key_empty(E, N, Next);
+
         implicit_key ->
             implicit_key_next(E, N)
     end.
@@ -205,16 +246,6 @@ after_block_pop_end_of(E, Space, EndOf) ->
 
 %=======================================================================
 
-after_implicit(E, {in_line, _, _}) ->
-    case yaml_implicit:detect(E, block) of
-        false ->
-            content_block(E)
-    end;
-after_implicit(E, Space) ->
-    after_indicator(E, Space).
-
-%=======================================================================
-
 push_indicator(E, Indicator, Block, N) ->
     S = yaml_event:scan(E),
     Indicator = yaml_scan:grapheme(S),
@@ -226,43 +257,34 @@ push_indicator(E, Indicator, Block, N) ->
 %-----------------------------------------------------------------------
 
 after_indicator(E, {in_line, M, _}) ->
-    case yaml_implicit:detect(E, block) of
-        explicit_key ->
-            {_, N, _} = yaml_event:top(E),
-            explicit_key_first(E, N + 1 + M);
-
-        implicit_key ->
-            {_, N, _} = yaml_event:top(E),
-            implicit_key_first(E, N + 1 + M);
-
-        sequence ->
-            {_, N, _} = yaml_event:top(E),
-            sequence_first(E, N + 1 + M);
-
-        false ->
-            content_block(E)
-    end;
-after_indicator(E, {indent_line, N, _}) ->
-    after_indicator_indent(E, N).
+    detect_compact_block(E, M);
+after_indicator(E, Space = {indent_line, N, _}) ->
+    after_indicator_indent(E, Space, yaml_event:indent_after_indicator(E, N)).
 
 %-----------------------------------------------------------------------
 
-after_indicator_indent(E, N) ->
-    case yaml_implicit:detect(E, block) of
-        explicit_key ->
-            explicit_key_first(E, N);
+after_indicator_indent(E, Space, Indent) ->
+    case Indent of
+        {more_indented, N} ->
+            detect_block(E, N);
 
-        implicit_key ->
-            implicit_key_first(E, N);
+        {explicit_value, not_indented, N} ->
+            explicit_value_not_indented(E, N);
 
-        sequence ->
-            sequence_first(E, N);
-
-        false ->
-            content_block(E)
+        {implicit_value, not_indented, N} ->
+            implicit_value_not_indented(E, N)
     end.
 
 %=======================================================================
+
+explicit_key_empty(E, N, Next) ->
+    At = yaml_event:coord(E),
+    Event = {empty, At, At, no_anchor, no_tag},
+    Popped = yaml_event:pop(E),
+    Pushed = yaml_event:push(Popped, explicit_key, N, At),
+    yaml_event:emit(Event, Pushed, Next).
+
+%-----------------------------------------------------------------------
 
 explicit_key_first(E, N) ->
     At = yaml_event:coord(E),
@@ -272,8 +294,28 @@ explicit_key_first(E, N) ->
 
 %=======================================================================
 
+explicit_value_empty(E, Next) ->
+    {explicit_value, _, From} = yaml_event:top(E),
+    Thru = yaml_event:coord(E),
+    Event = {empty, From, Thru, no_anchor, no_tag},
+    yaml_event:emit(Event, E, Next).
+
+%-----------------------------------------------------------------------
+
 explicit_value_next(E, N) ->
     push_indicator(yaml_event:pop(E), $:, explicit_value, N).
+
+%-----------------------------------------------------------------------
+
+explicit_value_not_indented(E, N) ->
+    case yaml_implicit:detect(E, block) of
+        implicit_key ->
+            Next = fun (EE) -> implicit_key_next(EE, N) end,
+            explicit_value_empty(E, Next);
+
+        sequence ->
+            sequence_first(E, N)
+    end.
 
 %=======================================================================
 
@@ -300,7 +342,7 @@ after_implicit_key(E) ->
         $: ->
             Z = yaml_scan:next(S),
             {Space, E1} = yaml_space:space(yaml_event:scan_to(E, Z)),
-            implicit_value_next(E1, Space);
+            after_implicit_indicator(E1, Space);
 
         _ ->
             throw({not_implemented, expecting_implicit_colon})
@@ -308,11 +350,29 @@ after_implicit_key(E) ->
 
 %-----------------------------------------------------------------------
 
-implicit_value_next(E, Space) ->
+after_implicit_indicator(E, Space) ->
     At = yaml_event:coord(E),
     {implicit_key, N, _} = yaml_event:top(E),
     Pushed = yaml_event:push(yaml_event:pop(E), implicit_value, N, At),
-    after_implicit(Pushed, Space).
+    after_implicit_space(Pushed, Space).
+
+%-----------------------------------------------------------------------
+
+after_implicit_space(E, {in_line, _, _}) ->
+    case yaml_implicit:detect(E, block) of
+        false ->
+            content_block(E)
+    end;
+after_implicit_space(E, Space) ->
+    after_indicator(E, Space).
+
+%=======================================================================
+
+implicit_value_not_indented(E, N) ->
+    case yaml_implicit:detect(E, block) of
+        sequence ->
+            sequence_first(E, N)
+    end.
 
 %=======================================================================
 

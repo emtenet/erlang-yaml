@@ -19,6 +19,7 @@
 -export([ coord/1
         , grapheme/1
         , indent/1
+        , indent_after_indicator/2
         , indent_plus/2
         , indent_next/2
         , is_indented/2
@@ -57,7 +58,8 @@
     {end_of_mapping, yaml:coord()} |
     {plain, yaml:coord(), yaml:coord(), yaml:maybe_anchor(), yaml:maybe_tag(), list()} |
     {single, yaml:coord(), yaml:coord(), yaml:maybe_anchor(), yaml:maybe_tag(), list()} |
-    {double, yaml:coord(), yaml:coord(), yaml:maybe_anchor(), yaml:maybe_tag(), list()}.
+    {double, yaml:coord(), yaml:coord(), yaml:maybe_anchor(), yaml:maybe_tag(), list()} |
+    {empty, yaml:coord(), yaml:coord(), yaml:maybe_anchor(), yaml:maybe_tag(), list()}.
 
 -opaque state() :: #event{}.
 
@@ -145,6 +147,25 @@ grapheme(#event{scan = Scan}) ->
 
 indent(#event{indent = N}) ->
     N.
+
+%=======================================================================
+
+-spec indent_after_indicator(state(), integer()) ->
+    {atom(), not_indented, integer()} |
+    {more_indented, integer()} |
+    {less_indented, integer()}.
+
+indent_after_indicator(E = #event{}, N) ->
+    case E#event.stack of
+        [{A, I, _} | _] when N =:= I ->
+            {A, not_indented, N};
+
+        [{_, I, _} | _] when N > I ->
+            {more_indented, N};
+
+        [{_, I, _} | _] when N < I ->
+            {less_indented, N}
+    end.
 
 %=======================================================================
 
