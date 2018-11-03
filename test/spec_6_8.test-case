@@ -1,0 +1,28 @@
+@@@ Example 6.8 Flow Folding
+
+@@@ source
+
+"
+  foo 
+ 
+  	 bar
+
+  baz
+"
+
+@@@ events
+
+{start_of_stream, {1, 1}}.
+{start_of_document, {1, 1}}.
+{double, {1, 1}, {7, 2}, no_anchor, no_tag
+, [ {{1, 2}, {2, 3}, <<" ">>}
+  , {{2, 3}, {2, 6}, <<"foo">>}
+  , {{3, 2}, {4, 5}, <<"\n">>}
+  , {{4, 5}, {4, 8}, <<"bar">>}
+  , {{5, 1}, {6, 3}, <<"\n">>}
+  , {{6, 3}, {6, 6}, <<"baz">>}
+  , {{6, 6}, {7, 1}, <<" ">>}
+  ]
+}.
+{end_of_document, {8, 1}}.
+{end_of_stream, {8, 1}}.
