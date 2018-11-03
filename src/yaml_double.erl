@@ -20,7 +20,7 @@
 scalar(Event, Style, Props)
         when (Style =:= block orelse Style =:= flow) andalso
              is_map(Props) ->
-    {T, S} = yaml_token:start(Event, plain, fun construct/2, Props),
+    {T, S} = yaml_token:start(Event, double, fun construct/2, Props),
     first(Style, T, S).
 
 %=======================================================================
@@ -103,6 +103,12 @@ text_white(Style, T, White, S) ->
 
 text_escape(Style, T, Escape, S) ->
     case escape_to_code_point(yaml_scan:grapheme(S)) of
+        end_of_stream ->
+            bad_escape(Style, T, Escape, S);
+
+        bad_escape ->
+            bad_escape(Style, T, Escape, yaml_scan:next(S));
+
         break ->
             fold(Style, escape, T, Escape, yaml_scan:next(S));
 
@@ -135,7 +141,10 @@ escape_to_code_point($\s) -> $\s;
 escape_to_code_point($\t) -> $\t;
 escape_to_code_point($\") -> $\";
 escape_to_code_point($\\) -> $\\;
-escape_to_code_point(break) -> break.
+escape_to_code_point(break) -> break;
+escape_to_code_point(end_of_stream) -> end_of_stream;
+escape_to_code_point(bad_encoding) -> end_of_stream;
+escape_to_code_point(_) -> bad_escape.
 
 %-----------------------------------------------------------------------
 
@@ -153,7 +162,16 @@ text_escape_hex(Style, T, Escape, N, Acc, S) ->
 
         G when (G >= $A andalso G =< $F) ->
             Calc = (Acc * 16) + (G - $A + 10),
-            text_escape_hex(Style, T, Escape, N - 1, Calc, yaml_scan:next(S))
+            text_escape_hex(Style, T, Escape, N - 1, Calc, yaml_scan:next(S));
+
+        $\" ->
+            bad_escape(Style, T, Escape, S);
+
+        G when ?IS_PRINTABLE(G) ->
+            bad_escape(Style, T, Escape, yaml_scan:next(S));
+
+        _ ->
+            bad_escape(Style, T, Escape, S)
     end.
 
 %-----------------------------------------------------------------------
@@ -162,6 +180,14 @@ text_escape_as(Style, T, Escape, CodePoint, S) ->
     Before = yaml_token:keep(T, Escape),
     Escaped = yaml_token:keep(Before, <<CodePoint/utf8>>, S),
     text(Style, Escaped, S).
+
+%-----------------------------------------------------------------------
+
+bad_escape(Style, T, Escape, S) ->
+    Before = yaml_token:keep(T, Escape),
+    Errored = yaml_token:error_range(Before, bad_escape, Escape, S),
+    Bad = yaml_token:keep(Errored, S),
+    text(Style, Bad, S).
 
 %-----------------------------------------------------------------------
 

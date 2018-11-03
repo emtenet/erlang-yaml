@@ -1,0 +1,32 @@
+@@@ Example 5.14 Invalid Escaped Characters
+
+@@@ source
+
+Bad escapes:
+  "\c
+  \xq-"
+
+@@@ events
+
+{start_of_stream, {1, 1}}.
+{start_of_document, {1, 1}}.
+{start_of_mapping, {1, 1}, no_anchor, no_tag}.
+{plain, {1, 1}, {1, 12}, no_anchor, no_tag
+, [ {{1, 1}, {1, 12}, <<"Bad escapes">>} ]
+}.
+{double, {2, 3}, {3, 8}, no_anchor, no_tag
+, [ {{2, 4}, {2, 6}, <<"\\c">>}
+  , {{2, 6}, {3, 3}, <<" ">>}
+  , {{3, 3}, {3, 6}, <<"\\xq">>}
+  , {{3, 6}, {3, 7}, <<"-">>}
+  ]
+}.
+{error
+, {bad_escape, {2, 4}, {2, 6}, {double, {2, 3}, {3, 8}}}
+}.
+{error
+, {bad_escape, {3, 3}, {3, 6}, {double, {2, 3}, {3, 8}}}
+}.
+{end_of_mapping, {4, 1}}.
+{end_of_document, {4, 1}}.
+{end_of_stream, {4, 1}}.
