@@ -20,7 +20,7 @@
 scalar(Event, Style, Props)
         when (Style =:= block orelse Style =:= flow) andalso
              is_map(Props) ->
-    {T, S} = yaml_token:start(Event, plain, fun construct/2, Props),
+    {T, S} = yaml_token:start(Event, single, fun construct/2, Props),
     first(Style, T, S).
 
 %=======================================================================
