@@ -68,7 +68,7 @@ text(Style, T, S) ->
 
         $\" ->
             text_finish(Style, T, S);
-            
+
         $\\ ->
             text_escape(Style, T, S, yaml_scan:next(S));
 
@@ -88,7 +88,7 @@ text_white(Style, T, White, S) ->
 
         $\" ->
             text_finish(Style, T, S);
-            
+
         $\\ ->
             text_escape(Style, T, S, yaml_scan:next(S));
 
@@ -102,16 +102,66 @@ text_white(Style, T, White, S) ->
 %-----------------------------------------------------------------------
 
 text_escape(Style, T, Escape, S) ->
-    case yaml_scan:grapheme(S) of
+    case escape_to_code_point(yaml_scan:grapheme(S)) of
         break ->
             fold(Style, escape, T, Escape, yaml_scan:next(S));
 
-        G when G =:= $\s orelse G =:= $\t ->
-            Z = yaml_scan:next(S),
-            Kept = yaml_token:keep(T, Escape),
-            Skip = yaml_token:skip(Kept, S),
-            text(Style, Skip, Z)
+        {hex, N} ->
+            text_escape_hex(Style, T, Escape, N, 0, yaml_scan:next(S));
+
+        CodePoint ->
+            text_escape_as(Style, T, Escape, CodePoint, yaml_scan:next(S))
     end.
+
+%-----------------------------------------------------------------------
+
+escape_to_code_point($0) -> 0;
+escape_to_code_point($a) -> $\a;
+escape_to_code_point($b) -> $\b;
+escape_to_code_point($e) -> $\e;
+escape_to_code_point($f) -> $\f;
+escape_to_code_point($n) -> $\n;
+escape_to_code_point($r) -> $\r;
+escape_to_code_point($t) -> $\t;
+escape_to_code_point($u) -> {hex, 4};
+escape_to_code_point($v) -> $\v;
+escape_to_code_point($x) -> {hex, 2};
+escape_to_code_point($L) -> 16#2028;
+escape_to_code_point($N) -> 16#85;
+escape_to_code_point($P) -> 16#2029;
+escape_to_code_point($U) -> {hex, 8};
+escape_to_code_point($_) -> 16#A0;
+escape_to_code_point($\s) -> $\s;
+escape_to_code_point($\t) -> $\t;
+escape_to_code_point($\") -> $\";
+escape_to_code_point($\\) -> $\\;
+escape_to_code_point(break) -> break.
+
+%-----------------------------------------------------------------------
+
+text_escape_hex(Style, T, Escape, 0, CodePoint, S) ->
+    text_escape_as(Style, T, Escape, CodePoint, S);
+text_escape_hex(Style, T, Escape, N, Acc, S) ->
+    case yaml_scan:grapheme(S) of
+        G when (G >= $0 andalso G =< $9) ->
+            Calc = (Acc * 16) + (G - $0),
+            text_escape_hex(Style, T, Escape, N - 1, Calc, yaml_scan:next(S));
+
+        G when (G >= $a andalso G =< $f) ->
+            Calc = (Acc * 16) + (G - $a + 10),
+            text_escape_hex(Style, T, Escape, N - 1, Calc, yaml_scan:next(S));
+
+        G when (G >= $A andalso G =< $F) ->
+            Calc = (Acc * 16) + (G - $A + 10),
+            text_escape_hex(Style, T, Escape, N - 1, Calc, yaml_scan:next(S))
+    end.
+
+%-----------------------------------------------------------------------
+
+text_escape_as(Style, T, Escape, CodePoint, S) ->
+    Before = yaml_token:keep(T, Escape),
+    Escaped = yaml_token:keep(Before, <<CodePoint/utf8>>, S),
+    text(Style, Escaped, S).
 
 %-----------------------------------------------------------------------
 
