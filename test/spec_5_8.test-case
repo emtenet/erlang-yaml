@@ -1,0 +1,27 @@
+@@@ Example 5.8 Quoted Scalar Indicators
+
+@@@ source
+
+single: 'text'
+double: "text"
+
+@@@ events
+
+{start_of_stream, {1, 1}}.
+{start_of_document, {1, 1}}.
+{start_of_mapping, {1, 1}, no_anchor, no_tag}.
+{plain, {1, 1}, {1, 7}, no_anchor, no_tag
+, [ {{1, 1}, {1, 7}, <<"single">>} ]
+}.
+{single, {1, 9}, {1, 15}, no_anchor, no_tag
+, [ {{1, 10}, {1, 14}, <<"text">>} ]
+}.
+{plain, {2, 1}, {2, 7}, no_anchor, no_tag
+, [ {{2, 1}, {2, 7}, <<"double">>} ]
+}.
+{double, {2, 9}, {2, 15}, no_anchor, no_tag
+, [ {{2, 10}, {2, 14}, <<"text">>} ]
+}.
+{end_of_mapping, {3, 1}}.
+{end_of_document, {3, 1}}.
+{end_of_stream, {3, 1}}.
