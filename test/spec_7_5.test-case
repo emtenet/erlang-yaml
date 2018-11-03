@@ -1,0 +1,25 @@
+@@@ Example 7.5 Double Quoted Line Breaks
+
+@@@ source
+
+"folded 
+to a space,	
+ 
+to a line feed, or 	\
+ \ 	non-content"
+
+@@@ events
+
+{start_of_stream, {1, 1}}.
+{start_of_document, {1, 1}}.
+{double, {1, 1}, {5, 17}, no_anchor, no_tag
+, [ {{1, 2}, {1, 8}, <<"folded">>}
+  , {{1, 8}, {2, 1}, <<" ">>}
+  , {{2, 1}, {2, 12}, <<"to a space,">>}
+  , {{3, 2}, {4, 1}, <<"\n">>}
+  , {{4, 1}, {4, 21}, <<"to a line feed, or \t">>}
+  , {{5, 3}, {5, 16}, <<" \tnon-content">>}
+  ]
+}.
+{end_of_document, {6, 1}}.
+{end_of_stream, {6, 1}}.
