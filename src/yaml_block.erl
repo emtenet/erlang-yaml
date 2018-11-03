@@ -40,6 +40,9 @@ content_continue(E, Props) ->
         $' ->
             single(E, Props);
 
+        $\" ->
+            double(E, Props);
+
         G when ?IS_PRINTABLE(G) ->
             plain(E, Props)
     end.
@@ -72,6 +75,11 @@ plain(E, Props) ->
 
 single(E, Props) ->
     scalar(yaml_single:scalar(E, block, Props)).
+
+%-----------------------------------------------------------------------
+
+double(E, Props) ->
+    scalar(yaml_double:scalar(E, block, Props)).
 
 %-----------------------------------------------------------------------
 
