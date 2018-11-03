@@ -1,0 +1,17 @@
+@@@ Example 7.7 Single Quoted Characters
+
+@@@ source
+
+'here''s to "quotes"'
+@@@ events
+
+{start_of_stream, {1, 1}}.
+{start_of_document, {1, 1}}.
+{single, {1, 1}, {1, 22}, no_anchor, no_tag
+, [ {{1, 2}, {1, 6}, <<"here">>}
+  , {{1, 6}, {1, 8}, <<"\'">>}
+  , {{1, 8}, {1, 21}, <<"s to \"quotes\"">>}
+  ]
+}.
+{end_of_document, {1, 22}}.
+{end_of_stream, {1, 22}}.

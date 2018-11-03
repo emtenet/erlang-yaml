@@ -37,6 +37,9 @@ content_start(E, At) ->
 
 content_continue(E, Props) ->
     case yaml_event:grapheme(E) of
+        $' ->
+            single(E, Props);
+
         G when ?IS_PRINTABLE(G) ->
             plain(E, Props)
     end.
@@ -64,6 +67,11 @@ after_content(E, Space) ->
 
 plain(E, Props) ->
     scalar(yaml_plain:scalar(E, block, Props)).
+
+%-----------------------------------------------------------------------
+
+single(E, Props) ->
+    scalar(yaml_single:scalar(E, block, Props)).
 
 %-----------------------------------------------------------------------
 
