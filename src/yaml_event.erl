@@ -59,7 +59,7 @@
     {plain, yaml:coord(), yaml:coord(), yaml:maybe_anchor(), yaml:maybe_tag(), list()} |
     {single, yaml:coord(), yaml:coord(), yaml:maybe_anchor(), yaml:maybe_tag(), list()} |
     {double, yaml:coord(), yaml:coord(), yaml:maybe_anchor(), yaml:maybe_tag(), list()} |
-    {empty, yaml:coord(), yaml:coord(), yaml:maybe_anchor(), yaml:maybe_tag(), list()}.
+    {empty, yaml:coord(), yaml:coord(), yaml:maybe_anchor(), yaml:maybe_tag()}.
 
 -opaque state() :: #event{}.
 
