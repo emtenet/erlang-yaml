@@ -32,12 +32,20 @@ construct(Ps, Props = #{ style := literal, chomp := Chomp }) ->
     #{ from := From, thru := Thru, anchor := Anchor, tag := Tag} = Props,
     Parts = to_literal(Ps, Chomp),
     Token = {literal, From, Thru, Anchor, Tag, Parts},
+    {Token, []};
+construct(Ps, Props = #{ style := folded, chomp := Chomp }) ->
+    #{ from := From, thru := Thru, anchor := Anchor, tag := Tag} = Props,
+    Parts = to_folded(Ps, Chomp),
+    Token = {folded, From, Thru, Anchor, Tag, Parts},
     {Token, []}.
 
 %=======================================================================
 
 first(literal, T, S) ->
     $| = yaml_scan:grapheme(S),
+    header(T, yaml_scan:next(S));
+first(folded, T, S) ->
+    $> = yaml_scan:grapheme(S),
     header(T, yaml_scan:next(S)).
 
 %=======================================================================
@@ -135,8 +143,16 @@ auto_is_indented(T, Start, S) ->
 
 auto_not_indented(T, Start, S) ->
     case yaml_scan:grapheme(S) of
+        break ->
+            T1 = yaml_token:keep(T, break, S),
+            auto_break(T1, yaml_scan:next(S));
+
         $\s ->
-            auto_is_indented(T, Start, yaml_scan:next(S))
+            auto_is_indented(T, Start, yaml_scan:next(S));
+
+        _ ->
+            T1 = yaml_token:keep(T, break, Start),
+            yaml_token:finish(T1, Start)
     end.
 
 %-----------------------------------------------------------------------
@@ -191,9 +207,9 @@ line_text(T, Indent, S) ->
 %=======================================================================
 
 to_literal(Ps, keep) ->
-    to_literal_rest(Ps, []);
+    to_literal_folded(Ps, []);
 to_literal(Ps, Chomp) ->
-    to_literal_chomp(Ps, Chomp, []).
+    to_literal_chomp(Ps, Chomp).
 
 %-----------------------------------------------------------------------
 
@@ -201,23 +217,60 @@ to_literal_chomp(
           [     {_, _, break}
           , T = {_, _, Text}
           | Rest]
-        , strip, Acc) when is_binary(Text) ->
-    to_literal_rest(Rest, [T | Acc]);
+        , strip) when is_binary(Text) ->
+    to_literal_folded(Rest, [T]);
 to_literal_chomp(
           [ B = {_, _, break}
           , T = {_, _, Text}
           | Rest]
-        , clip, Acc) when is_binary(Text) ->
-    to_literal_rest(Rest, [T, to_break(B) | Acc]).
+        , clip) when is_binary(Text) ->
+    to_literal_folded(Rest, [T, to_break(B)]).
 
 %-----------------------------------------------------------------------
 
-to_literal_rest([    {_, _, break}], Acc) ->
+to_literal_folded([    {_, _, break}], Acc) ->
     Acc;
-to_literal_rest([B = {_, _, break} | Rest], Acc) ->
-    to_literal_rest(Rest, [to_break(B) | Acc]);
-to_literal_rest([T = {_, _, Text} | Rest], Acc) when is_binary(Text) ->
-    to_literal_rest(Rest, [T | Acc]).
+to_literal_folded([B = {_, _, break} | Rest], Acc) ->
+    to_literal_folded(Rest, [to_break(B) | Acc]);
+to_literal_folded([T = {_, _, Text} | Rest], Acc) when is_binary(Text) ->
+    to_literal_folded(Rest, [T | Acc]).
+
+%=======================================================================
+
+to_folded(Ps, keep) ->
+    to_folded_folded(Ps, []);
+to_folded(Ps, Chomp) ->
+    to_folded_chomp(Ps, Chomp).
+
+%-----------------------------------------------------------------------
+
+to_folded_chomp(
+          [     {F, T, break}
+          ,     {_, _, break}
+          ]
+        , _) ->
+    [{F, T, <<>>}];
+to_folded_chomp(
+          [     {_, _, break}
+          , T = {_, _, Text}
+          | Rest]
+        , strip) when is_binary(Text) ->
+    to_folded_folded(Rest, [T]);
+to_folded_chomp(
+          [ B = {_, _, break}
+          , T = {_, _, Text}
+          | Rest]
+        , clip) when is_binary(Text) ->
+    to_folded_folded(Rest, [T, to_break(B)]).
+
+%-----------------------------------------------------------------------
+
+to_folded_folded([    {_, _, break}], Acc) ->
+    Acc;
+to_folded_folded([B = {_, _, break} | Rest], Acc) ->
+    to_folded_folded(Rest, [to_break(B) | Acc]);
+to_folded_folded([T = {_, _, Text} | Rest], Acc) when is_binary(Text) ->
+    to_folded_folded(Rest, [T | Acc]).
 
 %=======================================================================
 

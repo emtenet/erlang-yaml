@@ -81,7 +81,10 @@ content_continue(E, Props) ->
             double(E, Props);
 
         $| ->
-            literal(E, Props);
+            literal(E, literal, Props);
+
+        $> ->
+            literal(E, folded, Props);
 
         G when ?IS_PRINTABLE(G) ->
             plain(E, Props)
@@ -123,8 +126,8 @@ double(E, Props) ->
 
 %-----------------------------------------------------------------------
 
-literal(E, Props) ->
-    scalar(yaml_literal:block(E, literal, Props)).
+literal(E, Style, Props) ->
+    scalar(yaml_literal:block(E, Style, Props)).
 
 %-----------------------------------------------------------------------
 
