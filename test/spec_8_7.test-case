@@ -1,0 +1,22 @@
+@@@ Example 8.7 Literal Scalar
+
+@@@ source
+
+|
+ literal
+ @TAB@text
+
+
+@@@ events
+
+{start_of_stream, {1, 1}}.
+{start_of_document, {1, 1}}.
+{literal, {1, 1}, {5, 1}, no_anchor, no_tag
+, [ {{2, 2}, {2, 9}, <<"literal">>}
+  , {{2, 9}, {3, 2}, <<"\n">>}
+  , {{3, 2}, {3, 7}, <<"\ttext">>}
+  , {{3, 7}, {4, 1}, <<"\n">>}
+  ]
+}.
+{end_of_document, {5, 1}}.
+{end_of_stream, {5, 1}}.

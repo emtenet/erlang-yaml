@@ -1,0 +1,32 @@
+@@@ Example 8.8 Literal Content
+
+@@@ source
+
+|
+@SPACE@
+ @SPACE@
+  literal
+  @SPACE@
+ @SPACE@
+  text
+
+ # Comment
+
+@@@ events
+
+{start_of_stream, {1, 1}}.
+{start_of_document, {1, 1}}.
+{literal, {1, 1}, {10, 1}, no_anchor, no_tag
+, [ {{2, 2}, {3, 3}, <<"\n">>}
+  , {{3, 3}, {4, 3}, <<"\n">>}
+  , {{4, 3}, {4, 10}, <<"literal">>}
+  , {{4, 10}, {5, 3}, <<"\n">>}
+  , {{5, 3}, {5, 4}, <<" ">>}
+  , {{5, 4}, {6, 3}, <<"\n">>}
+  , {{6, 3}, {7, 3}, <<"\n">>}
+  , {{7, 3}, {7, 7}, <<"text">>}
+  , {{7, 7}, {8, 1}, <<"\n">>}
+  ]
+}.
+{end_of_document, {10, 1}}.
+{end_of_stream, {10, 1}}.

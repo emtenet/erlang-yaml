@@ -159,6 +159,10 @@ auto_not_indented(T, Start, S) ->
 
 auto_indented(T, Start, Indent, S) ->
     case yaml_scan:grapheme(S) of
+        break ->
+            T1 = yaml_token:keep(T, break, S),
+            auto_break(T1, yaml_scan:next(S));
+
         $\s ->
             auto_indented(T, Start, Indent + 1, yaml_scan:next(S));
 
@@ -186,6 +190,10 @@ line_indent(T, Indent, Start, S) ->
 
         $\s ->
             line_is_indented(T, Indent, Start, yaml_scan:next(S));
+
+        $# ->
+            T1 = yaml_token:keep(T, break, S),
+            comment_text(T1, Indent, yaml_scan:next(S));
 
         _ ->
             T1 = yaml_token:keep(T, break, Start),
@@ -218,9 +226,41 @@ line_text(T, Indent, S) ->
 
 %=======================================================================
 
+comment_break(T, Indent, S) ->
+    case yaml_scan:end_of(S) of
+        false ->
+            comment_indent(T, Indent, S)
+    end.
+
+%-----------------------------------------------------------------------
+
+comment_indent(T, _Indent, S) ->
+    case yaml_scan:grapheme(S) of
+        end_of_stream ->
+            T1 = yaml_token:keep(T, comment, S),
+            yaml_token:finish(T1, S)
+    end.
+
+%-----------------------------------------------------------------------
+
+comment_text(T, Indent, S) ->
+    case yaml_scan:grapheme(S) of
+        break ->
+            T1 = yaml_token:keep(T, S),
+            comment_break(T1, Indent, yaml_scan:next(S));
+
+        G when ?IS_PRINTABLE(G) ->
+            comment_text(T, Indent, yaml_scan:next(S))
+    end.
+
+%=======================================================================
+
 -define(BREAK(X), X = {_, _, break}).
+-define(COMMENT(X), X = {_, _, comment}).
 -define(TEXT(X), X = {_, _, <<_/binary>>}).
 
+to_literal([?COMMENT(_), ?TEXT(_) | Ps], Chomp) ->
+    to_literal(Ps, Chomp);
 to_literal(Ps, keep) ->
     to_literal_folded(Ps, []);
 to_literal(Ps, Chomp) ->
