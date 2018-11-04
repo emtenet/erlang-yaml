@@ -298,7 +298,9 @@ to_folded_chomp([{F, T, break}, ?BREAK(_)], _) ->
 to_folded_chomp([?BREAK(_), ?TEXT(T) | Rest], strip) ->
     to_folded_folded(Rest, [T]);
 to_folded_chomp([?BREAK(B), ?TEXT(T) | Rest], clip) ->
-    to_folded_folded(Rest, [T, to_break(B)]).
+    to_folded_folded(Rest, [T, to_break(B)]);
+to_folded_chomp([?BREAK(_) | Rest], Chomp) ->
+    to_folded_chomp(Rest, Chomp).
 
 %-----------------------------------------------------------------------
 
