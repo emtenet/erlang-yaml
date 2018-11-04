@@ -320,7 +320,7 @@ to_folded_folded([?BREAK(B), ?SPACED(T) | Rest], Acc) ->
 to_folded_folded([?BREAK(B), ?TEXT(T) | Rest], Acc) ->
     to_folded_folded(Rest, [T, to_space(B) | Acc]);
 to_folded_folded([?BREAK(B) | Rest], Acc) ->
-    to_folded_spaced(Rest, [to_break(B) | Acc]).
+    to_folded_break(Rest, [to_break(B) | Acc]).
 
 %-----------------------------------------------------------------------
 
@@ -331,7 +331,18 @@ to_folded_spaced([?BREAK(B), ?SPACED(T) | Rest], Acc) ->
 to_folded_spaced([?BREAK(B), ?TEXT(T) | Rest], Acc) ->
     to_folded_folded(Rest, [T, to_break(B) | Acc]);
 to_folded_spaced([?BREAK(B) | Rest], Acc) ->
-    to_folded_spaced(Rest, [to_break(B) | Acc]).
+    to_folded_break(Rest, [to_break(B) | Acc]).
+
+%-----------------------------------------------------------------------
+
+to_folded_break([?BREAK(_)], Acc) ->
+    Acc;
+to_folded_break([?BREAK(B), ?SPACED(T) | Rest], Acc) ->
+    to_folded_spaced(Rest, [T, to_break(B) | Acc]);
+to_folded_break([?BREAK(_), ?TEXT(T) | Rest], Acc) ->
+    to_folded_folded(Rest, [T | Acc]);
+to_folded_break([?BREAK(B) | Rest], Acc) ->
+    to_folded_break(Rest, [to_break(B) | Acc]).
 
 %=======================================================================
 
