@@ -259,6 +259,7 @@ comment_text(T, Indent, S) ->
 -define(COMMENT(X), X = {_, _, comment}).
 -define(TEXT(X), X = {_, _, <<_/binary>>}).
 -define(SPACED(X), X = {_, _, <<$\s, _/binary>>}).
+-define(TABBED(X), X = {_, _, <<$\t, _/binary>>}).
 
 to_literal([?COMMENT(_), ?TEXT(_) | Ps], Chomp) ->
     to_literal(Ps, Chomp);
@@ -289,8 +290,6 @@ to_literal_folded([?TEXT(T) | Rest], Acc) ->
 
 to_folded([?COMMENT(_), ?TEXT(_) | Ps], Chomp) ->
     to_folded(Ps, Chomp);
-to_folded(Ps = [?SPACED(_) | _], keep) ->
-    to_folded_spaced(Ps, []);
 to_folded(Ps, keep) ->
     to_folded_folded(Ps, []);
 to_folded(Ps, Chomp) ->
@@ -302,9 +301,13 @@ to_folded_chomp([{F, T, break}, ?BREAK(_)], _) ->
     [{F, T, <<>>}];
 to_folded_chomp([?BREAK(_), ?SPACED(T) | Rest], strip) ->
     to_folded_spaced(Rest, [T]);
+to_folded_chomp([?BREAK(_), ?TABBED(T) | Rest], strip) ->
+    to_folded_spaced(Rest, [T]);
 to_folded_chomp([?BREAK(_), ?TEXT(T) | Rest], strip) ->
     to_folded_folded(Rest, [T]);
 to_folded_chomp([?BREAK(B), ?SPACED(T) | Rest], clip) ->
+    to_folded_spaced(Rest, [T, to_break(B)]);
+to_folded_chomp([?BREAK(B), ?TABBED(T) | Rest], clip) ->
     to_folded_spaced(Rest, [T, to_break(B)]);
 to_folded_chomp([?BREAK(B), ?TEXT(T) | Rest], clip) ->
     to_folded_folded(Rest, [T, to_break(B)]);
@@ -317,10 +320,12 @@ to_folded_folded([?BREAK(_)], Acc) ->
     Acc;
 to_folded_folded([?BREAK(B), ?SPACED(T) | Rest], Acc) ->
     to_folded_spaced(Rest, [T, to_break(B) | Acc]);
+to_folded_folded([?BREAK(B), ?TABBED(T) | Rest], Acc) ->
+    to_folded_spaced(Rest, [T, to_break(B) | Acc]);
 to_folded_folded([?BREAK(B), ?TEXT(T) | Rest], Acc) ->
     to_folded_folded(Rest, [T, to_space(B) | Acc]);
 to_folded_folded([?BREAK(B) | Rest], Acc) ->
-    to_folded_break(Rest, [to_break(B) | Acc]).
+    to_folded_break(Rest, folded, [to_break(B) | Acc]).
 
 %-----------------------------------------------------------------------
 
@@ -328,21 +333,27 @@ to_folded_spaced([?BREAK(_)], Acc) ->
     Acc;
 to_folded_spaced([?BREAK(B), ?SPACED(T) | Rest], Acc) ->
     to_folded_spaced(Rest, [T, to_break(B) | Acc]);
+to_folded_spaced([?BREAK(B), ?TABBED(T) | Rest], Acc) ->
+    to_folded_spaced(Rest, [T, to_break(B) | Acc]);
 to_folded_spaced([?BREAK(B), ?TEXT(T) | Rest], Acc) ->
     to_folded_folded(Rest, [T, to_break(B) | Acc]);
 to_folded_spaced([?BREAK(B) | Rest], Acc) ->
-    to_folded_break(Rest, [to_break(B) | Acc]).
+    to_folded_break(Rest, spaced, [to_break(B) | Acc]).
 
 %-----------------------------------------------------------------------
 
-to_folded_break([?BREAK(_)], Acc) ->
+to_folded_break([?BREAK(_)], _, Acc) ->
     Acc;
-to_folded_break([?BREAK(B), ?SPACED(T) | Rest], Acc) ->
+to_folded_break([?BREAK(B), ?SPACED(T) | Rest], _, Acc) ->
     to_folded_spaced(Rest, [T, to_break(B) | Acc]);
-to_folded_break([?BREAK(_), ?TEXT(T) | Rest], Acc) ->
+to_folded_break([?BREAK(B), ?TABBED(T) | Rest], _, Acc) ->
+    to_folded_spaced(Rest, [T, to_break(B) | Acc]);
+to_folded_break([?BREAK(B), ?TEXT(T) | Rest], spaced, Acc) ->
+    to_folded_folded(Rest, [T, to_break(B) | Acc]);
+to_folded_break([?BREAK(_), ?TEXT(T) | Rest], folded, Acc) ->
     to_folded_folded(Rest, [T | Acc]);
-to_folded_break([?BREAK(B) | Rest], Acc) ->
-    to_folded_break(Rest, [to_break(B) | Acc]).
+to_folded_break([?BREAK(B) | Rest], Was, Acc) ->
+    to_folded_break(Rest, Was, [to_break(B) | Acc]).
 
 %=======================================================================
 
