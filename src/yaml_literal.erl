@@ -8,8 +8,6 @@
 
 -include("yaml_grapheme.hrl").
 
--include_lib("eunit/include/eunit.hrl").
-
 %=======================================================================
 
 -type style() :: literal | folded.
