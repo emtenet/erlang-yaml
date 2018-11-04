@@ -92,7 +92,7 @@ header_indent(T, S) ->
             header_after(T1, yaml_scan:next(S));
 
         $- ->
-            T1 = yaml_token:set(T, chomp, keep),
+            T1 = yaml_token:set(T, chomp, strip),
             header_after(T1, yaml_scan:next(S));
 
         _ ->
@@ -106,7 +106,37 @@ header_after(T, S) ->
     case yaml_scan:grapheme(S) of
         break ->
             Z = yaml_scan:next(S),
-            header_end(yaml_token:skip(T, S), Z)
+            header_end(yaml_token:skip(T, S), Z);
+
+        G when ?IS_WHITE(G) ->
+            header_white(T, yaml_scan:next(S))
+    end.
+
+%-----------------------------------------------------------------------
+
+header_white(T, S) ->
+    case yaml_scan:grapheme(S) of
+        break ->
+            Z = yaml_scan:next(S),
+            header_end(yaml_token:skip(T, S), Z);
+
+        G when ?IS_WHITE(G) ->
+            header_white(T, yaml_scan:next(S));
+
+        $# ->
+            header_comment(T, yaml_scan:next(S))
+    end.
+
+%-----------------------------------------------------------------------
+
+header_comment(T, S) ->
+    case yaml_scan:grapheme(S) of
+        break ->
+            Z = yaml_scan:next(S),
+            header_end(yaml_token:skip(T, S), Z);
+
+        G when not is_atom(G) ->
+            header_comment(T, yaml_scan:next(S))
     end.
 
 %-----------------------------------------------------------------------
@@ -133,7 +163,7 @@ auto_break(T, S) ->
 auto_is_indented(T, Start, S) ->
     case yaml_token:is_indented(T, S) of
         true ->
-            auto_indented(T, Start, 0, S);
+            auto_indented(T, Start, 1, S);
 
         false ->
             auto_not_indented(T, Start, S)
@@ -166,7 +196,7 @@ auto_indented(T, Start, Indent, S) ->
         $\s ->
             auto_indented(T, Start, Indent + 1, yaml_scan:next(S));
 
-        G when ?IS_PRINTABLE(G) andalso (Indent > 0) ->
+        G when ?IS_PRINTABLE(G) ->
             T1 = yaml_token:set(T, indent, Indent),
             T2 = yaml_token:keep(T1, break, S),
             line_text(T2, Indent, S)

@@ -1,0 +1,42 @@
+@@@ Example 8.1 Block Scalar Header
+
+@@@ source
+
+- | # Empty header
+ literal
+- >1 # Indentation indicator
+  folded
+- |+ # Chomping indicator
+ keep
+
+- >1- # Both indicators
+  strip
+
+@@@ events
+
+{start_of_stream, {1, 1}}.
+{start_of_document, {1, 1}}.
+{start_of_sequence, {1, 1}, no_anchor, no_tag}.
+{literal, {1, 3}, {3, 1}, no_anchor, no_tag
+, [ {{2, 2}, {2, 9}, <<"literal">>}
+  , {{2, 9}, {3, 1}, <<"\n">>}
+  ]
+}.
+{folded, {3, 3}, {5, 1}, no_anchor, no_tag
+, [ {{4, 2}, {4, 9}, <<" folded">>}
+  , {{4, 9}, {5, 1}, <<"\n">>}
+  ]
+}.
+{literal, {5, 3}, {8, 1}, no_anchor, no_tag
+, [ {{6, 2}, {6, 6}, <<"keep">>}
+  , {{6, 6}, {7, 1}, <<"\n">>}
+  , {{7, 1}, {8, 1}, <<"\n">>}
+  ]
+}.
+{folded, {8, 3}, {10, 1}, no_anchor, no_tag
+, [ {{9, 2}, {9, 8}, <<" strip">>}
+  ]
+}.
+{end_of_sequence, {10, 1}}.
+{end_of_document, {10, 1}}.
+{end_of_stream, {10, 1}}.

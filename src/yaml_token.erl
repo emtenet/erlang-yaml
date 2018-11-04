@@ -226,8 +226,8 @@ is_indented(#token{event = Event}, Scan) ->
 
 -spec is_indented(state(), yaml_scan:state(), pos_integer()) -> boolean().
 
-is_indented(#token{event = Event}, Scan, Extra) ->
-    yaml_event:is_indented(Event, Scan, Extra).
+is_indented(#token{event = Event}, Scan, By) ->
+    yaml_event:is_indented(Event, Scan, By).
 
 %=======================================================================
 

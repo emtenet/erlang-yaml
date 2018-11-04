@@ -201,14 +201,16 @@ indent_next(E = #event{}, N) ->
 -spec is_indented(state(), yaml_scan:state()) -> boolean().
 
 is_indented(#event{indent = I}, Scan) ->
-    yaml_scan:is_indented_at_least_by(Scan, I).
+    yaml_scan:is_indented(Scan, I).
 
 %=======================================================================
 
 -spec is_indented(state(), yaml_scan:state(), pos_integer()) -> boolean().
 
-is_indented(#event{indent = I}, Scan, Extra) ->
-    yaml_scan:is_indented_at_least_by(Scan, I + Extra).
+is_indented(#event{indent = I}, Scan, By) ->
+    % A literal's indent is already 1 more than the parent block
+    % So to take that into account
+    yaml_scan:is_indented(Scan, I - 1 + By).
 
 %=======================================================================
 
