@@ -93,13 +93,15 @@ parse_value(Tests, Key, Acc, From, Thru = <<"\n@@@", Rest/binary>>) ->
     Binary = parse_range(From, Thru),
     Value = parse_value_acc(Acc, Binary),
     parse_key_start([{Key, Value} | Tests], Rest);
-parse_value(Tests, Key, Acc, From, Thru = <<"@TAB@", Rest/binary>>) ->
-    Size = erlang:size(From) - erlang:size(Thru),
-    <<Binary:Size/binary, _/binary>> = From,
-    parse_value(Tests, Key, [<<"\t">>, Binary | Acc], Rest, Rest);
+parse_value(Tests, Key, Acc, From, Thru = <<"@BOM@", Rest/binary>>) ->
+    Binary = parse_range(From, Thru),
+    parse_value(Tests, Key, [<<16#FEFF/utf8>>, Binary | Acc], Rest, Rest);
 parse_value(Tests, Key, Acc, From, Thru = <<"@SPACE@", Rest/binary>>) ->
     Binary = parse_range(From, Thru),
     parse_value(Tests, Key, [<<"\s">>, Binary | Acc], Rest, Rest);
+parse_value(Tests, Key, Acc, From, Thru = <<"@TAB@", Rest/binary>>) ->
+    Binary = parse_range(From, Thru),
+    parse_value(Tests, Key, [<<"\t">>, Binary | Acc], Rest, Rest);
 parse_value(Tests, Key, Acc, From, <<_, Rest/binary>>) ->
     parse_value(Tests, Key, Acc, From, Rest).
 
@@ -173,6 +175,8 @@ consult(String, StartLocation, Events) ->
     end.
 
 %=======================================================================
+
+-ifdef(TEST).
 
 -include_lib("eunit/include/eunit.hrl").
 
@@ -280,6 +284,7 @@ parse_escaped_test() ->
     Source =
         <<"@@@ key\n"
           "\n"
+          "@BOM@ byte order mark\n"
           "Lone escape @ in text\n"
           "Trailing @SPACE@\n"
           "Tab @TAB@ in text\n"
@@ -288,7 +293,8 @@ parse_escaped_test() ->
           "@@@"
         >>,
     Value =
-        <<"Lone escape @ in text\n"
+        <<16#FEFF/utf8, " byte order mark\n"
+          "Lone escape @ in text\n"
           "Trailing \s\n"
           "Tab \t in text\n"
           "Ignored @tab@ and @space@ @ESCAPE@.\n"
@@ -311,4 +317,6 @@ consult_test() ->
         , {end_of_stream, {1, 1}}
         ],
     ?assertEqual({ok, Expect}, consult(Source)).
+
+-endif.
 
