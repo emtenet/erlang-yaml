@@ -198,6 +198,10 @@ after_block_continue(E, Space, Continue) ->
 
 after_block_explicit_key(E, N) ->
     case yaml_implicit:detect(E, block) of
+        explicit_key ->
+            Next = fun (EE) -> explicit_key_next(EE, N) end,
+            explicit_value_empty(E, Next);
+
         explicit_value ->
             explicit_value_next(E, N)
     end.
@@ -306,13 +310,25 @@ explicit_key_first(E, N) ->
     Next = fun (EE) -> push_indicator(EE, $?, explicit_key, N) end,
     yaml_event:emit(Event, E, Next).
 
+%-----------------------------------------------------------------------
+
+explicit_key_next(E, N) ->
+    push_indicator(yaml_event:pop(E), $?, explicit_key, N).
+
 %=======================================================================
 
 explicit_value_empty(E, Next) ->
-    {explicit_value, _, From} = yaml_event:top(E),
-    Thru = yaml_event:coord(E),
-    Event = {empty, From, Thru, no_anchor, no_tag},
-    yaml_event:emit(Event, E, Next).
+    case yaml_event:top(E) of
+        {explicit_key, _, _} ->
+            Thru = yaml_event:coord(E),
+            Event = {empty, Thru, Thru, no_anchor, no_tag},
+            yaml_event:emit(Event, E, Next);
+
+        {explicit_value, _, From} ->
+            Thru = yaml_event:coord(E),
+            Event = {empty, From, Thru, no_anchor, no_tag},
+            yaml_event:emit(Event, E, Next)
+    end.
 
 %-----------------------------------------------------------------------
 
