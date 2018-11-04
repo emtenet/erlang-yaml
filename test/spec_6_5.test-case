@@ -1,0 +1,37 @@
+@@@ Example 6.5 Empty Lines
+
+@@@ source
+
+Folding:
+  "Empty line
+   	
+  as a line feed"
+Chomping: |
+  Clipped empty lines
+ 
+
+@@@ events
+
+{start_of_stream, {1, 1}}.
+{start_of_document, {1, 1}}.
+{start_of_mapping, {1, 1}, no_anchor, no_tag}.
+{plain, {1, 1}, {1, 8}, no_anchor, no_tag
+, [ {{1, 1}, {1, 8}, <<"Folding">>} ]
+}.
+{double, {2, 3}, {4, 18}, no_anchor, no_tag
+, [ {{2, 4}, {2, 14}, <<"Empty line">>}
+  , {{3, 5}, {4, 3}, <<"\n">>}
+  , {{4, 3}, {4, 17}, <<"as a line feed">>}
+  ]
+}.
+{plain, {5, 1}, {5, 9}, no_anchor, no_tag
+, [ {{5, 1}, {5, 9}, <<"Chomping">>} ]
+}.
+{literal, {5, 11}, {8, 1}, no_anchor, no_tag
+, [ {{6, 3}, {6, 22}, <<"Clipped empty lines">>}
+  , {{6, 22}, {7, 2}, <<"\n">>}
+  ]
+}.
+{end_of_mapping, {8, 1}}.
+{end_of_document, {8, 1}}.
+{end_of_stream, {8, 1}}.

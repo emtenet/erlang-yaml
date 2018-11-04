@@ -182,6 +182,10 @@ line_break(T, Indent, S) ->
 
 line_indent(T, Indent, Start, S) ->
     case yaml_scan:grapheme(S) of
+        break ->
+            T1 = yaml_token:keep(T, break, S),
+            line_break(T1, Indent, yaml_scan:next(S));
+
         $\s ->
             line_is_indented(T, Indent, Start, yaml_scan:next(S));
 
@@ -229,7 +233,9 @@ to_literal(Ps, Chomp) ->
 to_literal_chomp([?BREAK(_), ?TEXT(T) | Rest], strip) ->
     to_literal_folded(Rest, [T]);
 to_literal_chomp([?BREAK(B), ?TEXT(T) | Rest], clip) ->
-    to_literal_folded(Rest, [T, to_break(B)]).
+    to_literal_folded(Rest, [T, to_break(B)]);
+to_literal_chomp([?BREAK(_) | Rest], Chomp) ->
+    to_literal_chomp(Rest, Chomp).
 
 %-----------------------------------------------------------------------
 
