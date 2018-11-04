@@ -1,0 +1,55 @@
+@@@ Example 8.5[folded] Chomping Trailing Lines
+
+@@@ source
+
+ # Strip
+  # Comments:
+strip: >-
+  # text
+ @SPACE@
+ # Clip
+  # comments:
+
+clip: >
+  # text
+@SPACE@
+ # Keep
+  # comments:
+
+keep: >+
+  # text
+
+ # Trail
+  # comments.
+
+@@@ events
+
+{start_of_stream, {1, 1}}.
+{start_of_document, {3, 1}}.
+{start_of_mapping, {3, 1}, no_anchor, no_tag}.
+{plain, {3, 1}, {3, 6}, no_anchor, no_tag
+, [ {{3, 1}, {3, 6}, <<"strip">>} ]
+}.
+{folded, {3, 8}, {9, 1}, no_anchor, no_tag
+, [ {{4, 3}, {4, 9}, <<"# text">>} ]
+}.
+{plain, {9, 1}, {9, 5}, no_anchor, no_tag
+, [ {{9, 1}, {9, 5}, <<"clip">>} ]
+}.
+{folded, {9, 7}, {15, 1}, no_anchor, no_tag
+, [ {{10, 3}, {10, 9}, <<"# text">>}
+  , {{10, 9}, {11, 2}, <<"\n">>}
+  ]
+}.
+{plain, {15, 1}, {15, 5}, no_anchor, no_tag
+, [ {{15, 1}, {15, 5}, <<"keep">>} ]
+}.
+{folded, {15, 7}, {20, 1}, no_anchor, no_tag
+, [ {{16, 3}, {16, 9}, <<"# text">>}
+  , {{16, 9}, {17, 1}, <<"\n">>}
+  , {{17, 1}, {18, 2}, <<"\n">>}
+  ]
+}.
+{end_of_mapping, {20, 1}}.
+{end_of_document, {20, 1}}.
+{end_of_stream, {20, 1}}.

@@ -277,16 +277,61 @@ line_text(T, Indent, Break, S) ->
 comment_break(T, Indent, S) ->
     case yaml_scan:end_of(S) of
         false ->
-            comment_indent(T, Indent, S)
+            comment_indent(T, Indent, S, S)
     end.
 
 %-----------------------------------------------------------------------
 
-comment_indent(T, _Indent, S) ->
+comment_indent(T, Indent, Start, S) ->
     case yaml_scan:grapheme(S) of
         end_of_stream ->
             T1 = yaml_token:keep(T, comment, S),
-            yaml_token:finish(T1, S)
+            yaml_token:finish(T1, S);
+
+        break ->
+            T1 = yaml_token:keep(T, comment, S),
+            comment_break(T1, Indent, yaml_scan:next(S));
+
+        $\s ->
+            comment_is_indented(T, Indent, Start, yaml_scan:next(S));
+
+        $# ->
+            T1 = yaml_token:keep(T, comment, S),
+            comment_text(T1, Indent, yaml_scan:next(S));
+
+        _ ->
+            T1 = yaml_token:keep(T, comment, Start),
+            yaml_token:finish(T1, Start)
+    end.
+
+%-----------------------------------------------------------------------
+
+comment_is_indented(T, Indent, Start, S) ->
+    case yaml_token:is_indented(T, S, Indent) of
+        true ->
+            T1 = yaml_token:keep(T, comment, S),
+            comment_indented(T1, Indent, S);
+
+        false ->
+            comment_indent(T, Indent, Start, S)
+    end.
+
+%-----------------------------------------------------------------------
+
+comment_indented(T, Indent, S) ->
+    case yaml_scan:grapheme(S) of
+        break ->
+            T1 = yaml_token:keep(T, S),
+            comment_break(T1, Indent, yaml_scan:next(S));
+
+        G when ?IS_WHITE(G) ->
+            comment_indented(T, Indent, yaml_scan:next(S));
+
+        $# ->
+            comment_text(T, Indent, yaml_scan:next(S));
+
+        G when ?IS_PRINTABLE(G) ->
+            line_text(T, Indent, break, yaml_scan:next(S))
     end.
 
 %-----------------------------------------------------------------------
@@ -311,6 +356,8 @@ comment_text(T, Indent, S) ->
 -define(TABBED(X), X = {_, _, <<$\t, _/binary>>}).
 
 to_literal([?COMMENT(_), ?TEXT(_) | Ps], Chomp) ->
+    to_literal(Ps, Chomp);
+to_literal([?COMMENT(_) | Ps], Chomp) ->
     to_literal(Ps, Chomp);
 to_literal(Ps, keep) ->
     to_literal_folded(Ps, []);
@@ -341,10 +388,23 @@ to_literal_folded([?TEXT(T) | Rest], Acc) ->
 
 to_folded([?COMMENT(_), ?TEXT(_) | Ps], Chomp) ->
     to_folded(Ps, Chomp);
+to_folded([?COMMENT(_) | Ps], Chomp) ->
+    to_folded(Ps, Chomp);
 to_folded(Ps, keep) ->
-    to_folded_folded(Ps, []);
+    to_folded_keep(Ps, []);
 to_folded(Ps, Chomp) ->
     to_folded_chomp(Ps, Chomp).
+
+%-----------------------------------------------------------------------
+
+to_folded_keep([?BREAK(B), ?SPACED(T) | Rest], Acc) ->
+    to_folded_spaced(Rest, [T, to_break(B) | Acc]);
+to_folded_keep([?BREAK(B), ?TABBED(T) | Rest], Acc) ->
+    to_folded_spaced(Rest, [T, to_break(B) | Acc]);
+to_folded_keep([?BREAK(B), ?TEXT(T) | Rest], Acc) ->
+    to_folded_folded(Rest, [T, to_break(B) | Acc]);
+to_folded_keep([?BREAK(B) | Rest], Acc) ->
+    to_folded_keep(Rest, [to_break(B) | Acc]).
 
 %-----------------------------------------------------------------------
 
