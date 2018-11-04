@@ -1,0 +1,41 @@
+@@@ Example 8.15 Block Sequence Entry Types
+
+@@@ source
+
+- # Empty
+- |
+ block node
+- - one # Compact
+  - two # sequence
+- one: two # Compact mapping
+
+@@@ events
+
+{start_of_stream, {1, 1}}.
+{start_of_document, {1, 1}}.
+{start_of_sequence, {1, 1}, no_anchor, no_tag}.
+{empty, {1, 2}, {2, 1}, no_anchor, no_tag}.
+{literal, {2, 3}, {4, 1}, no_anchor, no_tag
+, [ {{3, 2}, {3, 12}, <<"block node">>}
+  , {{3, 12}, {4, 1}, <<"\n">>}
+  ]
+}.
+{start_of_sequence, {4, 3}, no_anchor, no_tag}.
+{plain, {4, 5}, {4, 8}, no_anchor, no_tag
+, [ {{4, 5}, {4, 8}, <<"one">>} ]
+}.
+{plain, {5, 5}, {5, 8}, no_anchor, no_tag
+, [ {{5, 5}, {5, 8}, <<"two">>} ]
+}.
+{end_of_sequence, {6, 1}}.
+{start_of_mapping, {6, 3}, no_anchor, no_tag}.
+{plain, {6, 3}, {6, 6}, no_anchor, no_tag
+, [ {{6, 3}, {6, 6}, <<"one">>} ]
+}.
+{plain, {6, 8}, {6, 11}, no_anchor, no_tag
+, [ {{6, 8}, {6, 11}, <<"two">>} ]
+}.
+{end_of_mapping, {7, 1}}.
+{end_of_sequence, {7, 1}}.
+{end_of_document, {7, 1}}.
+{end_of_stream, {7, 1}}.

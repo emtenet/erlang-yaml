@@ -283,7 +283,10 @@ after_indicator_indent(E, _Space, Indent) ->
             explicit_value_not_indented(E, N);
 
         {implicit_value, not_indented, N} ->
-            implicit_value_not_indented(E, N)
+            implicit_value_not_indented(E, N);
+
+        {sequence, not_indented, N} ->
+            sequence_value_not_indented(E, N)
     end.
 
 %=======================================================================
@@ -397,4 +400,16 @@ sequence_first(E, N) ->
 
 sequence_next(E, N) ->
     push_indicator(yaml_event:pop(E), $-, sequence, N).
+
+%-----------------------------------------------------------------------
+
+sequence_value_not_indented(E, N) ->
+    case yaml_implicit:detect(E, block) of
+        sequence ->
+            {sequence, _, From} = yaml_event:top(E),
+            Thru = yaml_event:coord(E),
+            Event = {empty, From, Thru, no_anchor, no_tag},
+            Next = fun (EE) -> sequence_next(EE, N) end,
+            yaml_event:emit(Event, E, Next)
+    end.
 
