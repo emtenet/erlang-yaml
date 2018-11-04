@@ -20,8 +20,8 @@
         , error/3
         % INFO
         , consumed/2
-        , indent_plus/2
         , is_indented/2
+        , is_indented/3
         ]).
 
 -export_type([ state/0
@@ -217,17 +217,17 @@ consumed(#token{scan = Start}, End) ->
 
 %=======================================================================
 
--spec indent_plus(state(), integer()) -> integer().
-
-indent_plus(#token{event = Event}, M) ->
-    yaml_event:indent_plus(Event, M).
-
-%=======================================================================
-
 -spec is_indented(state(), yaml_scan:state()) -> boolean().
 
 is_indented(#token{event = Event}, Scan) ->
     yaml_event:is_indented(Event, Scan).
+
+%=======================================================================
+
+-spec is_indented(state(), yaml_scan:state(), pos_integer()) -> boolean().
+
+is_indented(#token{event = Event}, Scan, Extra) ->
+    yaml_event:is_indented(Event, Scan, Extra).
 
 %=======================================================================
 

@@ -80,6 +80,9 @@ content_continue(E, Props) ->
         $\" ->
             double(E, Props);
 
+        $| ->
+            literal(E, Props);
+
         G when ?IS_PRINTABLE(G) ->
             plain(E, Props)
     end.
@@ -117,6 +120,11 @@ single(E, Props) ->
 
 double(E, Props) ->
     scalar(yaml_double:scalar(E, block, Props)).
+
+%-----------------------------------------------------------------------
+
+literal(E, Props) ->
+    scalar(yaml_literal:block(E, literal, Props)).
 
 %-----------------------------------------------------------------------
 
@@ -263,7 +271,7 @@ after_indicator(E, Space = {indent_line, N, _}) ->
 
 %-----------------------------------------------------------------------
 
-after_indicator_indent(E, Space, Indent) ->
+after_indicator_indent(E, _Space, Indent) ->
     case Indent of
         {more_indented, N} ->
             detect_block(E, N);

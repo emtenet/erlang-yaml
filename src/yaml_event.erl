@@ -20,9 +20,9 @@
         , grapheme/1
         , indent/1
         , indent_after_indicator/2
-        , indent_plus/2
         , indent_next/2
         , is_indented/2
+        , is_indented/3
         , scan/1
         , scan_to/2
         , emit/3
@@ -59,6 +59,8 @@
     {plain, yaml:coord(), yaml:coord(), yaml:maybe_anchor(), yaml:maybe_tag(), list()} |
     {single, yaml:coord(), yaml:coord(), yaml:maybe_anchor(), yaml:maybe_tag(), list()} |
     {double, yaml:coord(), yaml:coord(), yaml:maybe_anchor(), yaml:maybe_tag(), list()} |
+    {literal, yaml:coord(), yaml:coord(), yaml:maybe_anchor(), yaml:maybe_tag(), list()} |
+    {folded, yaml:coord(), yaml:coord(), yaml:maybe_anchor(), yaml:maybe_tag(), list()} |
     {empty, yaml:coord(), yaml:coord(), yaml:maybe_anchor(), yaml:maybe_tag()}.
 
 -opaque state() :: #event{}.
@@ -169,14 +171,6 @@ indent_after_indicator(E = #event{}, N) ->
 
 %=======================================================================
 
--spec indent_plus(state(), integer()) -> integer().
-
-indent_plus(#event{indent = N}, M) ->
-    % N was already incremented when {content, N, _} was pushed onto stack
-    N + M - 1.
-
-%=======================================================================
-
 -spec indent_next(state(), integer()) ->
     pop |
     {atom(), integer()} |
@@ -208,6 +202,13 @@ indent_next(E = #event{}, N) ->
 
 is_indented(#event{indent = I}, Scan) ->
     yaml_scan:is_indented_at_least_by(Scan, I).
+
+%=======================================================================
+
+-spec is_indented(state(), yaml_scan:state(), pos_integer()) -> boolean().
+
+is_indented(#event{indent = I}, Scan, Extra) ->
+    yaml_scan:is_indented_at_least_by(Scan, I + Extra).
 
 %=======================================================================
 
