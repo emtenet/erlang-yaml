@@ -93,11 +93,11 @@ parse_value(Tests, Key, Acc, From, Thru = <<"\n@@@", Rest/binary>>) ->
     Binary = parse_range(From, Thru),
     Value = parse_value_acc(Acc, Binary),
     parse_key_start([{Key, Value} | Tests], Rest);
-parse_value(Tests, Key, Acc, From, Thru = <<"@tab@", Rest/binary>>) ->
+parse_value(Tests, Key, Acc, From, Thru = <<"@TAB@", Rest/binary>>) ->
     Size = erlang:size(From) - erlang:size(Thru),
     <<Binary:Size/binary, _/binary>> = From,
     parse_value(Tests, Key, [<<"\t">>, Binary | Acc], Rest, Rest);
-parse_value(Tests, Key, Acc, From, Thru = <<"@space@", Rest/binary>>) ->
+parse_value(Tests, Key, Acc, From, Thru = <<"@SPACE@", Rest/binary>>) ->
     Binary = parse_range(From, Thru),
     parse_value(Tests, Key, [<<"\s">>, Binary | Acc], Rest, Rest);
 parse_value(Tests, Key, Acc, From, <<_, Rest/binary>>) ->
@@ -281,9 +281,9 @@ parse_escaped_test() ->
         <<"@@@ key\n"
           "\n"
           "Lone escape @ in text\n"
-          "Trailing @space@\n"
-          "Tab @tab@ in text\n"
-          "Ignored @escape@.\n"
+          "Trailing @SPACE@\n"
+          "Tab @TAB@ in text\n"
+          "Ignored @tab@ and @space@ @ESCAPE@.\n"
           "\n"
           "@@@"
         >>,
@@ -291,7 +291,7 @@ parse_escaped_test() ->
         <<"Lone escape @ in text\n"
           "Trailing \s\n"
           "Tab \t in text\n"
-          "Ignored @escape@.\n"
+          "Ignored @tab@ and @space@ @ESCAPE@.\n"
         >>,
     Expect =
         [ {<<"key">>, Value}

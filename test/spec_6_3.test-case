@@ -2,9 +2,9 @@
 
 @@@ source
 
-- foo:	 bar
+- foo:@TAB@ bar
 - - baz
-  -	baz
+  -@TAB@baz
 
 @@@ events
 

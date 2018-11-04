@@ -2,11 +2,11 @@
 
 @@@ source
 
-"folded 
-to a space,	
- 
-to a line feed, or 	\
- \ 	non-content"
+"folded@SPACE@
+to a space,@TAB@
+@SPACE@
+to a line feed, or @TAB@\
+ \ @TAB@non-content"
 
 @@@ events
 

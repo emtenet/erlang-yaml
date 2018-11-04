@@ -5,10 +5,10 @@
 plain: text
   lines
 quoted: "text
-  	lines"
+  @TAB@lines"
 block: |
   text
-   	lines
+   @TAB@lines
 
 @@@ events
 

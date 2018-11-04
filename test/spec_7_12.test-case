@@ -4,8 +4,8 @@
 
 1st non-empty
 
- 2nd non-empty 
-	3rd non-empty
+ 2nd non-empty@SPACE@
+@TAB@3rd non-empty
 
 @@@ events
 

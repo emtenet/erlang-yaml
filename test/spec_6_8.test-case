@@ -3,9 +3,9 @@
 @@@ source
 
 "
-  foo 
- 
-  	 bar
+  foo@SPACE@
+@SPACE@
+  @TAB@ bar
 
   baz
 "
