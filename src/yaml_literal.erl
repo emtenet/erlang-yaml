@@ -182,23 +182,24 @@ line_break(T, Indent, S) ->
 
 line_indent(T, Indent, Start, S) ->
     case yaml_scan:grapheme(S) of
-        end_of_stream ->
-            T1 = yaml_token:keep(T, break, Start),
-            yaml_token:finish(T1, Start);
-
         $\s ->
-            line_indent(T, Indent, Start, yaml_scan:next(S));
+            line_is_indented(T, Indent, Start, yaml_scan:next(S));
 
-        G when ?IS_PRINTABLE(G) ->
-            case yaml_token:is_indented(T, S, Indent) of
-                true ->
-                    T1 = yaml_token:keep(T, break, S),
-                    line_text(T1, Indent, yaml_scan:next(S));
+        _ ->
+            T1 = yaml_token:keep(T, break, Start),
+            yaml_token:finish(T1, Start)
+    end.
 
-                false ->
-                    T1 = yaml_token:keep(T, break, Start),
-                    yaml_token:finish(T1, Start)
-            end
+%-----------------------------------------------------------------------
+
+line_is_indented(T, Indent, Start, S) ->
+    case yaml_token:is_indented(T, S, Indent) of
+        true ->
+            T1 = yaml_token:keep(T, break, S),
+            line_text(T1, Indent, S);
+
+        false ->
+            line_indent(T, Indent, Start, S)
     end.
 
 %-----------------------------------------------------------------------
