@@ -147,7 +147,7 @@ header_end(T, S) ->
             auto_break(T, S);
 
         {ok, Indent} when is_integer(Indent) ->
-            line_break(T, Indent, S)
+            line_break(T, Indent, break, S)
     end.
 
 %=======================================================================
@@ -199,59 +199,77 @@ auto_indented(T, Start, Indent, S) ->
         G when ?IS_PRINTABLE(G) ->
             T1 = yaml_token:set(T, indent, Indent),
             T2 = yaml_token:keep(T1, break, S),
-            line_text(T2, Indent, S)
+            line_first(T2, Indent, S)
     end.
 
 %=======================================================================
 
-line_break(T, Indent, S) ->
+line_break(T, Indent, Break, S) ->
     case yaml_scan:end_of(S) of
         false ->
-            line_indent(T, Indent, S, S)
+            line_indent(T, Indent, Break, S, S)
     end.
 
 %-----------------------------------------------------------------------
 
-line_indent(T, Indent, Start, S) ->
+line_indent(T, Indent, Break, Start, S) ->
     case yaml_scan:grapheme(S) of
         break ->
-            T1 = yaml_token:keep(T, break, S),
-            line_break(T1, Indent, yaml_scan:next(S));
+            T1 = yaml_token:keep(T, Break, S),
+            line_break(T1, Indent, break, yaml_scan:next(S));
 
         $\s ->
-            line_is_indented(T, Indent, Start, yaml_scan:next(S));
+            line_is_indented(T, Indent, Break, Start, yaml_scan:next(S));
 
         $# ->
-            T1 = yaml_token:keep(T, break, S),
+            T1 = yaml_token:keep(T, Break, S),
             comment_text(T1, Indent, yaml_scan:next(S));
 
         _ ->
-            T1 = yaml_token:keep(T, break, Start),
+            T1 = yaml_token:keep(T, Break, Start),
             yaml_token:finish(T1, Start)
     end.
 
 %-----------------------------------------------------------------------
 
-line_is_indented(T, Indent, Start, S) ->
+line_is_indented(T, Indent, Break, Start, S) ->
     case yaml_token:is_indented(T, S, Indent) of
         true ->
-            T1 = yaml_token:keep(T, break, S),
-            line_text(T1, Indent, S);
+            T1 = yaml_token:keep(T, Break, S),
+            line_first(T1, Indent, S);
 
         false ->
-            line_indent(T, Indent, Start, S)
+            line_indent(T, Indent, Break, Start, S)
     end.
 
 %-----------------------------------------------------------------------
 
-line_text(T, Indent, S) ->
+line_first(T, Indent, S) ->
     case yaml_scan:grapheme(S) of
         break ->
             T1 = yaml_token:keep(T, S),
-            line_break(T1, Indent, yaml_scan:next(S));
+            line_break(T1, Indent, break, yaml_scan:next(S));
+
+        G when ?IS_WHITE(G) ->
+            line_text(T, Indent, empty, yaml_scan:next(S));
 
         G when ?IS_PRINTABLE(G) ->
-            line_text(T, Indent, yaml_scan:next(S))
+            line_text(T, Indent, break, yaml_scan:next(S))
+    end.
+
+%-----------------------------------------------------------------------
+
+line_text(T, Indent, Break, S) ->
+    case yaml_scan:grapheme(S) of
+        break ->
+            T1 = yaml_token:keep(T, S),
+            line_break(T1, Indent, Break, yaml_scan:next(S));
+
+        G when ?IS_WHITE(G) ->
+            line_text(T, Indent, Break, yaml_scan:next(S));
+
+        G when ?IS_PRINTABLE(G) ->
+            line_text(T, Indent, break, yaml_scan:next(S))
     end.
 
 %=======================================================================
@@ -286,6 +304,7 @@ comment_text(T, Indent, S) ->
 %=======================================================================
 
 -define(BREAK(X), X = {_, _, break}).
+-define(EMPTY(X), X = {_, _, empty}).
 -define(COMMENT(X), X = {_, _, comment}).
 -define(TEXT(X), X = {_, _, <<_/binary>>}).
 -define(SPACED(X), X = {_, _, <<$\s, _/binary>>}).
@@ -313,6 +332,8 @@ to_literal_folded([?BREAK(_)], Acc) ->
     Acc;
 to_literal_folded([?BREAK(B) | Rest], Acc) ->
     to_literal_folded(Rest, [to_break(B) | Acc]);
+to_literal_folded([?EMPTY(B), ?TEXT(T) | Rest], Acc) ->
+    to_literal_folded(Rest, [T, to_break(B) | Acc]);
 to_literal_folded([?TEXT(T) | Rest], Acc) ->
     to_literal_folded(Rest, [T | Acc]).
 
@@ -354,6 +375,8 @@ to_folded_folded([?BREAK(B), ?TABBED(T) | Rest], Acc) ->
     to_folded_spaced(Rest, [T, to_break(B) | Acc]);
 to_folded_folded([?BREAK(B), ?TEXT(T) | Rest], Acc) ->
     to_folded_folded(Rest, [T, to_space(B) | Acc]);
+to_folded_folded([?EMPTY(B), ?TEXT(T) | Rest], Acc) ->
+    to_folded_break(Rest, folded, [T, to_space(B) | Acc]);
 to_folded_folded([?BREAK(B) | Rest], Acc) ->
     to_folded_break(Rest, folded, [to_break(B) | Acc]).
 
@@ -388,10 +411,14 @@ to_folded_break([?BREAK(B) | Rest], Was, Acc) ->
 %=======================================================================
 
 to_break({F, T, break}) ->
+    {F, T, <<"\n">>};
+to_break({F, T, empty}) ->
     {F, T, <<"\n">>}.
 
 %-----------------------------------------------------------------------
 
 to_space({F, T, break}) ->
+    {F, T, <<" ">>};
+to_space({F, T, empty}) ->
     {F, T, <<" ">>}.
 
