@@ -8,6 +8,8 @@
 
 -include("yaml_grapheme.hrl").
 
+-include_lib("eunit/include/eunit.hrl").
+
 %=======================================================================
 
 -type style() :: literal | folded.
@@ -184,8 +186,15 @@ line_indent(T, Indent, Start, S) ->
             T1 = yaml_token:keep(T, break, Start),
             yaml_token:finish(T1, Start);
 
+        $\s ->
+            line_indent(T, Indent, Start, yaml_scan:next(S));
+
         G when ?IS_PRINTABLE(G) ->
             case yaml_token:is_indented(T, S, Indent) of
+                true ->
+                    T1 = yaml_token:keep(T, break, S),
+                    line_text(T1, Indent, yaml_scan:next(S));
+
                 false ->
                     T1 = yaml_token:keep(T, break, Start),
                     yaml_token:finish(T1, Start)
@@ -206,6 +215,9 @@ line_text(T, Indent, S) ->
 
 %=======================================================================
 
+-define(BREAK(X), X = {_, _, break}).
+-define(TEXT(X), X = {_, _, <<_/binary>>}).
+
 to_literal(Ps, keep) ->
     to_literal_folded(Ps, []);
 to_literal(Ps, Chomp) ->
@@ -213,26 +225,18 @@ to_literal(Ps, Chomp) ->
 
 %-----------------------------------------------------------------------
 
-to_literal_chomp(
-          [     {_, _, break}
-          , T = {_, _, Text}
-          | Rest]
-        , strip) when is_binary(Text) ->
+to_literal_chomp([?BREAK(_), ?TEXT(T) | Rest], strip) ->
     to_literal_folded(Rest, [T]);
-to_literal_chomp(
-          [ B = {_, _, break}
-          , T = {_, _, Text}
-          | Rest]
-        , clip) when is_binary(Text) ->
+to_literal_chomp([?BREAK(B), ?TEXT(T) | Rest], clip) ->
     to_literal_folded(Rest, [T, to_break(B)]).
 
 %-----------------------------------------------------------------------
 
-to_literal_folded([    {_, _, break}], Acc) ->
+to_literal_folded([?BREAK(_)], Acc) ->
     Acc;
-to_literal_folded([B = {_, _, break} | Rest], Acc) ->
+to_literal_folded([?BREAK(B) | Rest], Acc) ->
     to_literal_folded(Rest, [to_break(B) | Acc]);
-to_literal_folded([T = {_, _, Text} | Rest], Acc) when is_binary(Text) ->
+to_literal_folded([?TEXT(T) | Rest], Acc) ->
     to_literal_folded(Rest, [T | Acc]).
 
 %=======================================================================
@@ -244,36 +248,29 @@ to_folded(Ps, Chomp) ->
 
 %-----------------------------------------------------------------------
 
-to_folded_chomp(
-          [     {F, T, break}
-          ,     {_, _, break}
-          ]
-        , _) ->
+to_folded_chomp([{F, T, break}, ?BREAK(_)], _) ->
     [{F, T, <<>>}];
-to_folded_chomp(
-          [     {_, _, break}
-          , T = {_, _, Text}
-          | Rest]
-        , strip) when is_binary(Text) ->
+to_folded_chomp([?BREAK(_), ?TEXT(T) | Rest], strip) ->
     to_folded_folded(Rest, [T]);
-to_folded_chomp(
-          [ B = {_, _, break}
-          , T = {_, _, Text}
-          | Rest]
-        , clip) when is_binary(Text) ->
+to_folded_chomp([?BREAK(B), ?TEXT(T) | Rest], clip) ->
     to_folded_folded(Rest, [T, to_break(B)]).
 
 %-----------------------------------------------------------------------
 
-to_folded_folded([    {_, _, break}], Acc) ->
+to_folded_folded([?BREAK(_)], Acc) ->
     Acc;
-to_folded_folded([B = {_, _, break} | Rest], Acc) ->
-    to_folded_folded(Rest, [to_break(B) | Acc]);
-to_folded_folded([T = {_, _, Text} | Rest], Acc) when is_binary(Text) ->
+to_folded_folded([?BREAK(B) | Rest], Acc) ->
+    to_folded_folded(Rest, [to_space(B) | Acc]);
+to_folded_folded([?TEXT(T) | Rest], Acc) ->
     to_folded_folded(Rest, [T | Acc]).
 
 %=======================================================================
 
 to_break({F, T, break}) ->
     {F, T, <<"\n">>}.
+
+%-----------------------------------------------------------------------
+
+to_space({F, T, break}) ->
+    {F, T, <<" ">>}.
 
