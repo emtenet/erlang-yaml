@@ -11,6 +11,7 @@
              , state/0
              , emit/0
              , next/0
+             , stack/0
              ]).
 
 -export([ stream_should_end/1
@@ -45,7 +46,7 @@
         { scan :: yaml_scan:state()
         , next :: next()
         , indent :: integer()
-        , stack :: [{atom(), integer(), yaml:coord()}]
+        , stack :: [stack()]
         }).
 
 -type event() ::
@@ -72,6 +73,8 @@
     end_of_events.
 
 -type next() :: fun((state()) -> emit()).
+
+-type stack() :: {atom(), integer() | flow, yaml:coord()}.
 
 %=======================================================================
 
@@ -253,23 +256,36 @@ error(Error, E = #event{}, Next) ->
 
 %=======================================================================
 
--spec top(state()) -> {atom(), integer(), yaml:coord()}.
+-spec top(state()) -> stack().
 
 top(#event{stack = [Top | _]}) ->
     Top.
 
 %=======================================================================
 
--spec push(state(), atom(), integer(), yaml:coord()) -> state().
+-spec push(state(), atom(), integer() | flow, yaml:coord()) -> state().
 
-push(E = #event{}, Push, N, At) ->
+push(E = #event{indent = I, stack = [{_, I, _} | _]}, Push, N, At = {_, _})
+        when is_atom(Push) andalso
+             is_integer(N) andalso
+             N >= I ->
     Stack = [{Push, N, At} | E#event.stack],
-    E#event{indent = N, stack = Stack}.
+    E#event{indent = N, stack = Stack};
+push(E = #event{}, Push, N = flow, At = {_, _})
+        when is_atom(Push) ->
+    Stack = [{Push, N, At} | E#event.stack],
+    E#event{stack = Stack}.
 
 %=======================================================================
 
 -spec pop(state()) -> state().
 
 pop(E = #event{stack = [_ | Stack = [{_, N, _} | _]]}) ->
-    E#event{indent = N, stack = Stack}.
+    case N of
+        flow ->
+            E#event{stack = Stack};
+
+        _ ->
+            E#event{indent = N, stack = Stack}
+    end.
 
