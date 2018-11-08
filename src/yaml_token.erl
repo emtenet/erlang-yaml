@@ -20,6 +20,7 @@
         , error/3
         % INFO
         , consumed/2
+        , indent_to_column/2
         , is_indented/2
         , is_indented/3
         ]).
@@ -214,6 +215,13 @@ consumed(#token{scan = Start}, End) ->
     From = yaml_scan:coord(Start),
     Thru = yaml_scan:coord(End),
     {From, Thru, Text}.
+
+%=======================================================================
+
+-spec indent_to_column(state(), pos_integer()) -> pos_integer().
+
+indent_to_column(#token{event = Event}, By) ->
+    yaml_event:indent_to_column(Event, By).
 
 %=======================================================================
 

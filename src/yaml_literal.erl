@@ -29,15 +29,17 @@ block(Event, Style, Props0)
 -spec construct(list(), map()) -> {yaml_event:event(), list()}.
 
 construct(Ps, Props = #{ style := literal, chomp := Chomp }) ->
+    Errors = errors(Ps, Props),
     #{ from := From, thru := Thru, anchor := Anchor, tag := Tag} = Props,
     Parts = to_literal(Ps, Chomp),
     Token = {literal, From, Thru, Anchor, Tag, Parts},
-    {Token, []};
+    {Token, Errors};
 construct(Ps, Props = #{ style := folded, chomp := Chomp }) ->
+    Errors = errors(Ps, Props),
     #{ from := From, thru := Thru, anchor := Anchor, tag := Tag} = Props,
     Parts = to_folded(Ps, Chomp),
     Token = {folded, From, Thru, Anchor, Tag, Parts},
-    {Token, []}.
+    {Token, Errors}.
 
 %=======================================================================
 
@@ -147,7 +149,9 @@ header_end(T, S) ->
             auto_break(T, S);
 
         {ok, Indent} when is_integer(Indent) ->
-            line_break(T, Indent, break, S)
+            Column = yaml_token:indent_to_column(T, Indent),
+            T1 = yaml_token:set(T, column, Column),
+            line_break(T1, Indent, break, S)
     end.
 
 %=======================================================================
@@ -197,9 +201,11 @@ auto_indented(T, Start, Indent, S) ->
             auto_indented(T, Start, Indent + 1, yaml_scan:next(S));
 
         G when ?IS_PRINTABLE(G) ->
+            Column = yaml_token:indent_to_column(T, Indent),
             T1 = yaml_token:set(T, indent, Indent),
-            T2 = yaml_token:keep(T1, break, S),
-            line_first(T2, Indent, S)
+            T2 = yaml_token:set(T1, column, Column),
+            T3 = yaml_token:keep(T2, break, S),
+            line_first(T3, Indent, S)
     end.
 
 %=======================================================================
@@ -214,6 +220,10 @@ line_break(T, Indent, Break, S) ->
 
 line_indent(T, Indent, Break, Start, S) ->
     case yaml_scan:grapheme(S) of
+        end_of_stream ->
+            T1 = yaml_token:keep(T, Break, Start),
+            yaml_token:finish(T1, Start);
+
         break ->
             T1 = yaml_token:keep(T, Break, S),
             line_break(T1, Indent, break, yaml_scan:next(S));
@@ -226,8 +236,7 @@ line_indent(T, Indent, Break, Start, S) ->
             comment_text(T1, Indent, yaml_scan:next(S));
 
         _ ->
-            T1 = yaml_token:keep(T, Break, Start),
-            yaml_token:finish(T1, Start)
+            line_less_indented(T, Indent, Break, Start, S)
     end.
 
 %-----------------------------------------------------------------------
@@ -240,6 +249,19 @@ line_is_indented(T, Indent, Break, Start, S) ->
 
         false ->
             line_indent(T, Indent, Break, Start, S)
+    end.
+
+%-----------------------------------------------------------------------
+
+line_less_indented(T, Indent, Break, Start, S) ->
+    case yaml_token:is_indented(T, S) of
+        true ->
+            T1 = yaml_token:keep(T, Break, S),
+            line_first(T1, Indent, S);
+
+        false ->
+            T1 = yaml_token:keep(T, Break, Start),
+            yaml_token:finish(T1, Start)
     end.
 
 %-----------------------------------------------------------------------
@@ -481,4 +503,36 @@ to_space({F, T, break}) ->
     {F, T, <<" ">>};
 to_space({F, T, empty}) ->
     {F, T, <<" ">>}.
+
+
+%=======================================================================
+
+errors(Ps, #{ column := Column }) ->
+    error_empty(Ps, Column, []);
+errors(_, _) ->
+    [].
+
+%-----------------------------------------------------------------------
+
+error_empty([?COMMENT(_), ?TEXT(_) | Ps], Column, Errors) ->
+    error_empty(Ps, Column, Errors);
+error_empty([?COMMENT(_) | Ps], Column, Errors) ->
+    error_empty(Ps, Column, Errors);
+error_empty([?BREAK(_) | Ps], Column, Errors) ->
+    error_empty(Ps, Column, Errors);
+error_empty(Ps, Column, Errors) ->
+    error_rest(Ps, Column, Errors).
+
+%-----------------------------------------------------------------------
+
+error_rest([], _, Errors) ->
+    lists:reverse(Errors);
+error_rest([{{R, C}, _, <<_/binary>>} | Ps], Column, Errors) when C < Column ->
+    Error = {less_indented, {R, C}, {R, Column}},
+    error_rest(Ps, Column, [Error | Errors]);
+error_rest([{_, {R, C}, break} | Ps], Column, Errors) when C > Column ->
+    Error = {leading_spaces, {R, Column}, {R, C}},
+    error_rest(Ps, Column, [Error | Errors]);
+error_rest([_ | Ps], Column, Errors) ->
+    error_rest(Ps, Column, Errors).
 

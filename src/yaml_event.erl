@@ -21,6 +21,7 @@
         , indent/1
         , indent_after_indicator/2
         , indent_next/2
+        , indent_to_column/2
         , is_indented/2
         , is_indented/3
         , scan/1
@@ -195,6 +196,16 @@ indent_next(E = #event{}, N) ->
         [{A, I, _} | _] when N > I ->
             {A, more_indented, I}
     end.
+
+%=======================================================================
+
+-spec indent_to_column(state(), pos_integer()) -> pos_integer().
+
+indent_to_column(#event{indent = I}, By) ->
+    % A literal's indent is already 1 more than the parent block
+    % But the indent (zero based) is one less than column (one based)
+    % So they cancel each other out
+    I + By.
 
 %=======================================================================
 
