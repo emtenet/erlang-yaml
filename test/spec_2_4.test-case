@@ -1,0 +1,61 @@
+@@@ Example 2.4 Sequence of Mappings
+
+@@@ source
+
+-
+  name: Mark McGwire
+  hr:   65
+  avg:  0.278
+-
+  name: Sammy Sosa
+  hr:   63
+  avg:  0.288
+
+@@@ events
+
+{start_of_stream, {1, 1}}.
+{start_of_document, {1, 1}}.
+{start_of_sequence, {1, 1}, no_anchor, no_tag}.
+{start_of_mapping, {2, 3}, no_anchor, no_tag}.
+{plain, {2, 3}, {2, 7}, no_anchor, no_tag
+, [ {{2, 3}, {2, 7}, <<"name">>} ]
+}.
+{plain, {2, 9}, {2, 21}, no_anchor, no_tag
+, [ {{2, 9}, {2, 21}, <<"Mark McGwire">>} ]
+}.
+{plain, {3, 3}, {3, 5}, no_anchor, no_tag
+, [ {{3, 3}, {3, 5}, <<"hr">>} ]
+}.
+{plain, {3, 9}, {3, 11}, no_anchor, no_tag
+, [ {{3, 9}, {3, 11}, <<"65">>} ]
+}.
+{plain, {4, 3}, {4, 6}, no_anchor, no_tag
+, [ {{4, 3}, {4, 6}, <<"avg">>} ]
+}.
+{plain, {4, 9}, {4, 14}, no_anchor, no_tag
+, [ {{4, 9}, {4, 14}, <<"0.278">>} ]
+}.
+{end_of_mapping, {5, 1}}.
+{start_of_mapping, {6, 3}, no_anchor, no_tag}.
+{plain, {6, 3}, {6, 7}, no_anchor, no_tag
+, [ {{6, 3}, {6, 7}, <<"name">>} ]
+}.
+{plain, {6, 9}, {6, 19}, no_anchor, no_tag
+, [ {{6, 9}, {6, 19}, <<"Sammy Sosa">>} ]
+}.
+{plain, {7, 3}, {7, 5}, no_anchor, no_tag
+, [ {{7, 3}, {7, 5}, <<"hr">>} ]
+}.
+{plain, {7, 9}, {7, 11}, no_anchor, no_tag
+, [ {{7, 9}, {7, 11}, <<"63">>} ]
+}.
+{plain, {8, 3}, {8, 6}, no_anchor, no_tag
+, [ {{8, 3}, {8, 6}, <<"avg">>} ]
+}.
+{plain, {8, 9}, {8, 14}, no_anchor, no_tag
+, [ {{8, 9}, {8, 14}, <<"0.288">>} ]
+}.
+{end_of_mapping, {9, 1}}.
+{end_of_sequence, {9, 1}}.
+{end_of_document, {9, 1}}.
+{end_of_stream, {9, 1}}.
