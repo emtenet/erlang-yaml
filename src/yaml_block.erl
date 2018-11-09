@@ -87,6 +87,9 @@ content_continue(E, Props) ->
         $> ->
             literal(E, folded, Props);
 
+        ${ ->
+            yaml_flow:mapping(E, Props);
+
         $[ ->
             yaml_flow:sequence(E, Props);
 
