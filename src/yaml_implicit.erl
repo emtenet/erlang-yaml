@@ -36,13 +36,31 @@ detect(E, Context) when Context =:= block orelse Context =:= flow ->
 detect_start(S, Context) ->
     case yaml_scan:grapheme(S) of
         $? ->
-            detect_plain_or_separate(S, Context, explicit_key);
+            detect_indicator(S, Context, explicit_key);
 
         $: ->
-            detect_plain_or_separate(S, Context, explicit_value);
+            detect_indicator(S, Context, explicit_value);
 
         $- ->
-            detect_plain_or_separate(S, Context, sequence);
+            detect_indicator(S, Context, sequence);
+
+        _ ->
+            detect_scalar(S, [Context])
+    end.
+
+%=======================================================================
+
+detect_indicator(S0, Context, Indicator) ->
+    S = yaml_scan:next(S0),
+    case yaml_scan:grapheme(S) of
+        end_of_stream ->
+            Indicator;
+
+        break ->
+            Indicator;
+
+        G when ?IS_WHITE(G) ->
+            Indicator;
 
         _ ->
             detect_plain(S, [Context])
@@ -50,26 +68,51 @@ detect_start(S, Context) ->
 
 %=======================================================================
 
-detect_plain_or_separate(S0, Context, Separate) ->
-    S = yaml_scan:next(S0),
+detect_scalar(S, Stack) ->
     case yaml_scan:grapheme(S) of
-        end_of_stream ->
-            Separate;
+        $' ->
+            detect_single(yaml_scan:next(S), Stack);
 
-        break ->
-            Separate;
+        $" ->
+            detect_double(yaml_scan:next(S), Stack);
 
-        G when ?IS_WHITE(G) ->
-            Separate;
+        $* ->
+            throw(alias);
+
+        $& ->
+            throw(anchor);
+
+        $! ->
+            throw(property);
+
+        ${ ->
+            detect_collection(yaml_scan:next(S), [$} | Stack]);
+
+        $[ ->
+            detect_collection(yaml_scan:next(S), [$} | Stack]);
+
+        G when ?IS_RESERVED_INDICATOR(G) ->
+            detect_plain_white(S, Stack);
+
+        G when ?IS_PLAIN_ERROR_INDICATOR(G) ->
+            detect_plain_white(S, Stack);
+
+        G when ?IS_INDICATOR(G) ->
+            detect_continue(S, Stack);
+
+        G when ?IS_PRINTABLE(G) ->
+            detect_plain_white(S, Stack);
 
         _ ->
-            detect_plain(S, [Context])
+            false
     end.
 
 %=======================================================================
 
 detect_continue(S, [Context]) ->
-    detect_implicit(S, Context).
+    detect_implicit(S, Context);
+detect_continue(S, Stack) ->
+    detect_collection(S, Stack).
 
 %=======================================================================
 
@@ -169,5 +212,87 @@ detect_plain_colon(Colon, S, Stack) ->
 
         _ ->
             false
+    end.
+
+%=======================================================================
+
+detect_single(S, Stack) ->
+    case yaml_scan:grapheme(S) of
+        $' ->
+            Z = yaml_scan:next(S),
+            case yaml_scan:grapheme(Z) of
+                $' ->
+                    detect_single(yaml_scan:next(Z), Stack);
+
+                _ ->
+                    detect_continue(Z, Stack)
+            end;
+
+        G when ?IS_PRINTABLE(G) ->
+            detect_single(yaml_scan:next(S), Stack);
+
+        _ ->
+            false
+    end.
+
+%=======================================================================
+
+detect_double(S, Stack) ->
+    case yaml_scan:grapheme(S) of
+        $\" ->
+            detect_continue(yaml_scan:next(S), Stack);
+
+        $\\ ->
+            Z = yaml_scan:next(S),
+            case yaml_scan:grapheme(Z) of
+                G when ?IS_PRINTABLE(G) ->
+                    detect_double(yaml_scan:next(Z), Stack);
+
+                _ ->
+                    false
+            end;
+
+        G when ?IS_PRINTABLE(G) ->
+            detect_double(yaml_scan:next(S), Stack);
+
+        _ ->
+            false
+    end.
+
+%=======================================================================
+
+detect_collection(S, Stack) ->
+    case yaml_scan:grapheme(S) of
+        G when ?IS_WHITE(G) ->
+            detect_collection(yaml_scan:next(S), Stack);
+
+        G when G =:= hd(Stack) ->
+            detect_continue(yaml_scan:next(S), tl(Stack));
+
+        $, ->
+            detect_collection(yaml_scan:next(S), Stack);
+
+        $? ->
+            detect_mapping(yaml_scan:next(S), Stack);
+
+        $: ->
+            detect_mapping(yaml_scan:next(S), Stack);
+
+        _ ->
+            detect_scalar(S, Stack)
+    end.
+
+%=======================================================================
+
+detect_mapping(S, Stack) ->
+    case yaml_scan:grapheme(S) of
+        G when ?IS_WHITE(G) ->
+            detect_collection(yaml_scan:next(S), Stack);
+
+        G when ?IS_FLOW_INDICATOR(G) ->
+            detect_continue(S, Stack);
+
+        _ ->
+            detect_plain(S, Stack)
     end.
 
