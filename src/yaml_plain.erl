@@ -104,6 +104,9 @@ text(Style, T, S) ->
         $: ->
             text_colon(Style, T, S, yaml_scan:next(S));
 
+        G when Style =:= flow andalso ?IS_FLOW_INDICATOR(G) ->
+            yaml_token:finish(T, S);
+
         G when ?IS_WHITE(G) ->
             text_white(Style, T, S, yaml_scan:next(S));
 
@@ -119,6 +122,9 @@ text(Style, T, S) ->
 text_colon(Style, T, White, S) ->
     case yaml_scan:grapheme(S) of
         break ->
+            yaml_token:finish(T, White);
+
+        G when Style =:= flow andalso ?IS_FLOW_INDICATOR(G) ->
             yaml_token:finish(T, White);
 
         G when ?IS_WHITE(G) ->
@@ -142,6 +148,9 @@ text_white(Style, T, White, S) ->
             text_colon(Style, T, White, yaml_scan:next(S));
 
         $# ->
+            yaml_token:finish(T, White);
+
+        G when Style =:= flow andalso ?IS_FLOW_INDICATOR(G) ->
             yaml_token:finish(T, White);
 
         G when ?IS_WHITE(G) ->

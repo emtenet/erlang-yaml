@@ -4,7 +4,7 @@
 -module(yaml_document).
 
 -export([ document_may_start/1
-        , document_should_end/2
+        , block_did_end/2
         ]).
 
 -include("yaml_grapheme.hrl").
@@ -37,10 +37,10 @@ start_of_document(E, Space) ->
 
 %=======================================================================
 
--spec document_should_end(yaml_event:state(), yaml_space:space()) ->
+-spec block_did_end(yaml_event:state(), yaml_space:space()) ->
     yaml_event:emit().
 
-document_should_end(E, {end_of, stream, _}) ->
+block_did_end(E, {end_of, stream, _}) ->
     At = yaml_event:coord(E),
     Next = fun yaml_event:stream_should_end/1,
     document_did_end(E, At, Next).

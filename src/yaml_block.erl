@@ -4,6 +4,7 @@
 -module(yaml_block).
 
 -export([ document/2
+        , flow_did_end/1
         ]).
 
 -include("yaml_grapheme.hrl").
@@ -86,6 +87,9 @@ content_continue(E, Props) ->
         $> ->
             literal(E, folded, Props);
 
+        $[ ->
+            yaml_flow:sequence(E, Props);
+
         G when ?IS_PRINTABLE(G) ->
             plain(E, Props)
     end.
@@ -108,6 +112,13 @@ after_content(E, {in_line, _, _}) ->
     end;
 after_content(E, Space) ->
     after_block(E, Space).
+
+%=======================================================================
+
+-spec flow_did_end(yaml_event:state()) -> yaml_event:emit().
+
+flow_did_end(E) ->
+    after_content(E).
 
 %=======================================================================
 
@@ -155,7 +166,7 @@ props_empty(From) ->
 after_block(E, Space) ->
     case yaml_event:top(E) of
         {document, _, _} ->
-            yaml_document:document_should_end(E, Space);
+            yaml_document:block_did_end(E, Space);
 
         {block, _, _} ->
             after_block(yaml_event:pop(E), Space);

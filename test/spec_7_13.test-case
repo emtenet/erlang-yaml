@@ -1,0 +1,31 @@
+@@@ Example 7.13 Flow Sequence
+
+@@@ source
+
+- [ one, two, ]
+- [three ,four]
+
+@@@ events
+
+{start_of_stream, {1, 1}}.
+{start_of_document, {1, 1}}.
+{start_of_sequence, {1, 1}, no_anchor, no_tag}.
+{start_of_sequence, {1, 3}, no_anchor, no_tag}.
+{plain, {1, 5}, {1, 8}, no_anchor, no_tag
+, [ {{1, 5}, {1, 8}, <<"one">>} ]
+}.
+{plain, {1, 10}, {1, 13}, no_anchor, no_tag
+, [ {{1, 10}, {1, 13}, <<"two">>} ]
+}.
+{end_of_sequence, {1, 16}}.
+{start_of_sequence, {2, 3}, no_anchor, no_tag}.
+{plain, {2, 4}, {2, 9}, no_anchor, no_tag
+, [ {{2, 4}, {2, 9}, <<"three">>} ]
+}.
+{plain, {2, 11}, {2, 15}, no_anchor, no_tag
+, [ {{2, 11}, {2, 15}, <<"four">>} ]
+}.
+{end_of_sequence, {2, 16}}.
+{end_of_sequence, {3, 1}}.
+{end_of_document, {3, 1}}.
+{end_of_stream, {3, 1}}.
