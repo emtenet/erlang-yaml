@@ -135,6 +135,9 @@ entry_detect(E, mapping) ->
     end;
 entry_detect(E, sequence) ->
     case yaml_implicit:detect(E, flow) of
+        implicit_key ->
+            implicit_pair(E);
+
         false ->
             entry_with_empty_props(E, yaml_event:coord(E));
 
@@ -218,6 +221,15 @@ end_of_content(E) ->
         {key, flow, _} ->
             space_after_content(E);
 
+        {pair_key, flow, _} ->
+            space_after_content(E);
+
+        {pair_value, flow, _} ->
+            At = yaml_event:coord(E),
+            Event = {end_of_mapping, At},
+            Next = fun space_after_content/1,
+            yaml_event:emit(Event, yaml_event:pop(E), Next);
+
         {sequence, flow, _} ->
             space_after_content(E);
 
@@ -272,6 +284,9 @@ colon_after_content(E, At) ->
         {key, flow, _} ->
             entry(yaml_event:top(E, value, flow, At), value);
 
+        {pair_key, flow, _} ->
+            entry(yaml_event:top(E, pair_value, flow, At), value);
+
         T ->
             throw({E, At, T})
     end.
@@ -324,4 +339,13 @@ implicit_key(E) ->
     At = yaml_event:coord(E),
     Pushed = yaml_event:push(E, key, flow, At),
     entry_with_empty_props(Pushed, At).
+
+%=======================================================================
+
+implicit_pair(E) ->
+    At = yaml_event:coord(E),
+    Pushed = yaml_event:push(E, pair_key, flow, At),
+    Event = {start_of_mapping, At, no_anchor, no_tag},
+    Next = fun (EE) -> entry_with_empty_props(EE, At) end,
+    yaml_event:emit(Event, Pushed, Next).
 

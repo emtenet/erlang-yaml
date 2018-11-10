@@ -1,0 +1,29 @@
+@@@ Example 7.8 Single Quoted Implicit Keys
+
+@@@ source
+
+'implicit block key' : [
+  'implicit flow key' : value,
+ ]
+
+@@@ events
+
+{start_of_stream, {1, 1}}.
+{start_of_document, {1, 1}}.
+{start_of_mapping, {1, 1}, no_anchor, no_tag}.
+{single, {1, 1}, {1, 21}, no_anchor, no_tag
+, [ {{1, 2}, {1, 20}, <<"implicit block key">>} ]
+}.
+{start_of_sequence, {1, 24}, no_anchor, no_tag}.
+{start_of_mapping, {2, 3}, no_anchor, no_tag}.
+{single, {2, 3}, {2, 22}, no_anchor, no_tag
+, [ {{2, 4}, {2, 21}, <<"implicit flow key">>} ]
+}.
+{plain, {2, 25}, {2, 30}, no_anchor, no_tag
+, [ {{2, 25}, {2, 30}, <<"value">>} ]
+}.
+{end_of_mapping, {2, 30}}.
+{end_of_sequence, {3, 3}}.
+{end_of_mapping, {4, 1}}.
+{end_of_document, {4, 1}}.
+{end_of_stream, {4, 1}}.
