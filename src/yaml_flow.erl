@@ -99,13 +99,31 @@ props_empty(From) ->
 entry(E, Flow) ->
     case yaml_space:space(E) of
         {{in_line, _, _}, E1} ->
-            entry_detect(E1, Flow)
+            entry_detect(E1, Flow);
+
+        {Space = {indent_line, _, _}, E1} ->
+            case yaml_event:is_indented(E) of
+                true ->
+                    entry_detect(E1, Flow);
+
+                false ->
+                    throw({E1, Space})
+            end;
+
+        {Space, E1} ->
+            throw({E1, Space})
     end.
 
 %-----------------------------------------------------------------------
 
 entry_detect(E, mapping) ->
     case yaml_implicit:detect(E, flow) of
+        explicit_key ->
+            explicit_key(E);
+
+        explicit_value ->
+            explicit_value_missing_key(E);
+
         implicit_key ->
             implicit_key(E);
 
@@ -150,9 +168,31 @@ entry_with_props(E, Props) ->
             Scanned = yaml_event:scan_to(E, yaml_scan:next(S)),
             end_of_sequence(Scanned, Props, yaml_scan:coord(S));
 
+        $, ->
+            Scanned = yaml_event:scan_to(E, yaml_scan:next(S)),
+            comma(Scanned, Props, yaml_scan:coord(S));
+
+        G when ?IS_INDICATOR(G) ->
+            throw({E, Props, G});
+
         G when ?IS_PRINTABLE(G) ->
-            scalar(yaml_plain:scalar(E, flow, Props))
+            scalar(yaml_plain:scalar(E, flow, Props));
+
+        G ->
+            throw({E, Props, G})
     end.
+
+%=======================================================================
+
+empty(E, At = {_, _}, Next) ->
+    Event = {empty, At, At, no_anchor, no_tag},
+    yaml_event:emit(Event, E, Next).
+
+%-----------------------------------------------------------------------
+
+empty(E, #{ from := From, anchor := Anchor, tag := Tag }, Thru, Next) ->
+    Event = {empty, From, Thru, Anchor, Tag},
+    yaml_event:emit(Event, E, Next).
 
 %=======================================================================
 
@@ -172,11 +212,17 @@ end_of_scaler(E, []) ->
 
 end_of_content(E) ->
     case yaml_event:top(E) of
-        {value, flow, _} ->
-            space_after_content(yaml_event:pop(E));
+        {explicit, flow, At} ->
+            space_after_content(yaml_event:top(E, key, flow, At));
 
-        _ ->
-            space_after_content(E)
+        {key, flow, _} ->
+            space_after_content(E);
+
+        {sequence, flow, _} ->
+            space_after_content(E);
+
+        {value, flow, _} ->
+            space_after_content(yaml_event:pop(E))
     end.
 
 %-----------------------------------------------------------------------
@@ -224,15 +270,20 @@ after_content(E) ->
 colon_after_content(E, At) ->
     case yaml_event:top(E) of
         {key, flow, _} ->
-            Popped = yaml_event:pop(E),
-            Pushed = yaml_event:push(Popped, value, flow, At),
-            entry(Pushed, value);
+            entry(yaml_event:top(E, value, flow, At), value);
 
         T ->
             throw({E, At, T})
     end.
 
 %=======================================================================
+
+comma(E, Props, Thru) ->
+    {value, flow, _} = yaml_event:top(E),
+    Next = fun (EE) -> entry(EE, mapping) end,
+    empty(yaml_event:pop(E), Props, Thru, Next).
+
+%-----------------------------------------------------------------------
 
 comma_after_content(E, At) ->
     case yaml_event:top(E) of
@@ -245,6 +296,27 @@ comma_after_content(E, At) ->
         T ->
             throw({E, At, T})
     end.
+
+%=======================================================================
+
+explicit_key(E) ->
+    S = yaml_event:scan(E),
+    At = yaml_scan:coord(S),
+    $? = yaml_scan:grapheme(S),
+    Scanned = yaml_event:scan_to(E, yaml_scan:next(S)),
+    Pushed = yaml_event:push(Scanned, explicit, flow, At),
+    entry(Pushed, explicit).
+
+%=======================================================================
+
+explicit_value_missing_key(E) ->
+    S = yaml_event:scan(E),
+    At = yaml_scan:coord(S),
+    $: = yaml_scan:grapheme(S),
+    Scanned = yaml_event:scan_to(E, yaml_scan:next(S)),
+    Pushed = yaml_event:push(Scanned, value, flow, At),
+    Next = fun (EE) -> entry(EE, mapping) end,
+    empty(Pushed, At, Next).
 
 %=======================================================================
 

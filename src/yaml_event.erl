@@ -23,6 +23,7 @@
         , indent_after_indicator/2
         , indent_next/2
         , indent_to_column/2
+        , is_indented/1
         , is_indented/2
         , is_indented/3
         , scan/1
@@ -30,6 +31,7 @@
         , emit/3
         , error/3
         , top/1
+        , top/4
         , push/4
         , pop/1
         ]).
@@ -212,6 +214,13 @@ indent_to_column(#event{indent = I}, By) ->
 
 %=======================================================================
 
+-spec is_indented(state()) -> boolean().
+
+is_indented(#event{indent = I, scan = Scan}) ->
+    yaml_scan:is_indented(Scan, I).
+
+%=======================================================================
+
 -spec is_indented(state(), yaml_scan:state()) -> boolean().
 
 is_indented(#event{indent = I}, Scan) ->
@@ -260,6 +269,15 @@ error(Error, E = #event{}, Next) ->
 
 top(#event{stack = [Top | _]}) ->
     Top.
+
+%=======================================================================
+
+-spec top(state(), atom(), flow, yaml:coord()) -> state().
+
+top(E = #event{stack = [{_, flow, _} | Pop]}, Push, N = flow, At = {_, _})
+        when is_atom(Push) ->
+    Stack = [{Push, N, At} | Pop],
+    E#event{stack = Stack}.
 
 %=======================================================================
 
