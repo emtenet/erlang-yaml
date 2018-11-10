@@ -31,18 +31,17 @@ end_of_mapping(E, #{ anchor := no_anchor, tag := no_tag }, At) ->
 
 end_of_mapping(E, At) ->
     case yaml_event:top(E) of
-        {explicit, flow, {R, C}} ->
-            From = {R, C + 1},
+        {explicit, flow, From} ->
             Next = fun (EE) -> end_of_mapping(EE, At) end,
             Top = yaml_event:top(E, value, flow, From),
-            empty(Top, From, Next);
+            empty_after_indicator(Top, From, Next);
 
         {key, flow, _} ->
             end_of_mapping(yaml_event:pop(E), At);
 
         {value, flow, From} ->
             Next = fun (EE) -> end_of_mapping(EE, At) end,
-            empty(yaml_event:pop(E), From, Next);
+            empty_after_indicator(yaml_event:pop(E), From, Next);
             
         {mapping, flow, _} ->
             Event = {end_of_mapping, yaml_event:coord(E)},
@@ -217,6 +216,13 @@ empty(E, At = {_, _}, Next) ->
 
 empty(E, #{ from := From, anchor := Anchor, tag := Tag }, Thru, Next) ->
     Event = {empty, From, Thru, Anchor, Tag},
+    yaml_event:emit(Event, E, Next).
+
+%-----------------------------------------------------------------------
+
+empty_after_indicator(E, {R, C}, Next) ->
+    At = {R, C + 1},
+    Event = {empty, At, At, no_anchor, no_tag},
     yaml_event:emit(Event, E, Next).
 
 %=======================================================================
