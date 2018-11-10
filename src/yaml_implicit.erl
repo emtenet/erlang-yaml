@@ -131,7 +131,7 @@ detect_implicit(S, Context) ->
             detect_implicit_colon(yaml_scan:next(S));
 
         G when ?IS_WHITE(G) ->
-            detect_implicit(S, Context);
+            detect_implicit(yaml_scan:next(S), Context);
 
         _ ->
             false
