@@ -31,6 +31,16 @@ end_of_mapping(E, #{ anchor := no_anchor, tag := no_tag }, At) ->
 
 end_of_mapping(E, At) ->
     case yaml_event:top(E) of
+        {explicit, flow, {R, C}} ->
+            From = {R, C + 1},
+            Next = fun (EE) -> end_of_mapping(EE, At) end,
+            Top = yaml_event:top(E, value, flow, From),
+            empty(Top, From, Next);
+            
+        {value, flow, From} ->
+            Next = fun (EE) -> end_of_mapping(EE, At) end,
+            empty(yaml_event:pop(E), From, Next);
+            
         {mapping, flow, _} ->
             Event = {end_of_mapping, yaml_event:coord(E)},
             Next = fun (EE) -> end_of_collection(EE) end,

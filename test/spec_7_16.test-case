@@ -1,0 +1,32 @@
+@@@ Example 7.16 Flow Mapping Entries
+
+@@@ source
+
+{
+? explicit: entry,
+implicit: entry,
+?
+}
+
+@@@ events
+
+{start_of_stream, {1, 1}}.
+{start_of_document, {1, 1}}.
+{start_of_mapping, {1, 1}, no_anchor, no_tag}.
+{plain, {2, 3}, {2, 11}, no_anchor, no_tag
+, [ {{2, 3}, {2, 11}, <<"explicit">>} ]
+}.
+{plain, {2, 13}, {2, 18}, no_anchor, no_tag
+, [ {{2, 13}, {2, 18}, <<"entry">>} ]
+}.
+{plain, {3, 1}, {3, 9}, no_anchor, no_tag
+, [ {{3, 1}, {3, 9}, <<"implicit">>} ]
+}.
+{plain, {3, 11}, {3, 16}, no_anchor, no_tag
+, [ {{3, 11}, {3, 16}, <<"entry">>} ]
+}.
+{empty, {4, 2}, {4, 2}, no_anchor, no_tag}.
+{empty, {4, 2}, {4, 2}, no_anchor, no_tag}.
+{end_of_mapping, {5, 2}}.
+{end_of_document, {6, 1}}.
+{end_of_stream, {6, 1}}.
