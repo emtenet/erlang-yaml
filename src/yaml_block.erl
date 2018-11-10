@@ -334,13 +334,12 @@ explicit_key_next(E, N) ->
 explicit_value_empty(E, Next) ->
     case yaml_event:top(E) of
         {explicit_key, _, _} ->
-            Thru = yaml_event:coord(E),
-            Event = {empty, Thru, Thru, no_anchor, no_tag},
+            At = yaml_event:coord(E),
+            Event = {empty, At, At, no_anchor, no_tag},
             yaml_event:emit(Event, E, Next);
 
-        {explicit_value, _, From} ->
-            Thru = yaml_event:coord(E),
-            Event = {empty, From, Thru, no_anchor, no_tag},
+        {explicit_value, _, At} ->
+            Event = {empty, At, At, no_anchor, no_tag},
             yaml_event:emit(Event, E, Next)
     end.
 
@@ -436,9 +435,8 @@ sequence_next(E, N) ->
 sequence_value_not_indented(E, N) ->
     case yaml_implicit:detect(E, block) of
         sequence ->
-            {sequence, _, From} = yaml_event:top(E),
-            Thru = yaml_event:coord(E),
-            Event = {empty, From, Thru, no_anchor, no_tag},
+            {sequence, _, At} = yaml_event:top(E),
+            Event = {empty, At, At, no_anchor, no_tag},
             Next = fun (EE) -> sequence_next(EE, N) end,
             yaml_event:emit(Event, E, Next)
     end.
