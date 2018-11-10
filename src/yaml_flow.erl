@@ -36,7 +36,10 @@ end_of_mapping(E, At) ->
             Next = fun (EE) -> end_of_mapping(EE, At) end,
             Top = yaml_event:top(E, value, flow, From),
             empty(Top, From, Next);
-            
+
+        {key, flow, _} ->
+            end_of_mapping(yaml_event:pop(E), At);
+
         {value, flow, From} ->
             Next = fun (EE) -> end_of_mapping(EE, At) end,
             empty(yaml_event:pop(E), From, Next);
@@ -141,7 +144,7 @@ entry_detect(E, mapping) ->
             implicit_key(E);
 
         false ->
-            entry_with_empty_props(E, yaml_event:coord(E));
+            implicit_key(E);
 
         D ->
             throw({E, D})
@@ -313,14 +316,21 @@ colon_after_content(E, At) ->
 %=======================================================================
 
 comma(E, Props, Thru) ->
-    {value, flow, _} = yaml_event:top(E),
-    Next = fun (EE) -> entry(EE, mapping) end,
-    empty(yaml_event:pop(E), Props, Thru, Next).
+    case yaml_event:top(E) of
+        {value, flow, _} ->
+            comma_missing_value(E, Props, Thru);
+
+        T ->
+            throw({E, Props, Thru, T})
+    end.
 
 %-----------------------------------------------------------------------
 
 comma_after_content(E, At) ->
     case yaml_event:top(E) of
+        {key, flow, _} ->
+            comma_missing_value(E, At);
+
         {mapping, flow, _} ->
             entry(E, mapping);
 
@@ -330,6 +340,18 @@ comma_after_content(E, At) ->
         T ->
             throw({E, At, T})
     end.
+
+%-----------------------------------------------------------------------
+
+comma_missing_value(E, At) ->
+    Next = fun (EE) -> entry(EE, mapping) end,
+    empty(yaml_event:pop(E), At, Next).
+
+%-----------------------------------------------------------------------
+
+comma_missing_value(E, Props, Thru) ->
+    Next = fun (EE) -> entry(EE, mapping) end,
+    empty(yaml_event:pop(E), Props, Thru, Next).
 
 %=======================================================================
 
@@ -349,7 +371,7 @@ explicit_value_missing_key(E) ->
     $: = yaml_scan:grapheme(S),
     Scanned = yaml_event:scan_to(E, yaml_scan:next(S)),
     Pushed = yaml_event:push(Scanned, value, flow, At),
-    Next = fun (EE) -> entry(EE, mapping) end,
+    Next = fun (EE) -> entry(EE, value) end,
     empty(Pushed, At, Next).
 
 %=======================================================================

@@ -1,0 +1,37 @@
+@@@ Example 7.17 Flow Mapping Separate Values
+
+@@@ source
+
+{
+unquoted : "separate",
+http://foo.com,
+omitted value:,
+: omitted key,
+}
+
+@@@ events
+
+{start_of_stream, {1, 1}}.
+{start_of_document, {1, 1}}.
+{start_of_mapping, {1, 1}, no_anchor, no_tag}.
+{plain, {2, 1}, {2, 9}, no_anchor, no_tag
+, [ {{2, 1}, {2, 9}, <<"unquoted">>} ]
+}.
+{double, {2, 12}, {2, 22}, no_anchor, no_tag
+, [ {{2, 13}, {2, 21}, <<"separate">>} ]
+}.
+{plain, {3, 1}, {3, 15}, no_anchor, no_tag
+, [ {{3, 1}, {3, 15}, <<"http://foo.com">>} ]
+}.
+{empty, {3, 15}, {3, 15}, no_anchor, no_tag}.
+{plain, {4, 1}, {4, 14}, no_anchor, no_tag
+, [ {{4, 1}, {4, 14}, <<"omitted value">>} ]
+}.
+{empty, {4, 15}, {4, 15}, no_anchor, no_tag}.
+{empty, {5, 1}, {5, 1}, no_anchor, no_tag}.
+{plain, {5, 3}, {5, 14}, no_anchor, no_tag
+, [ {{5, 3}, {5, 14}, <<"omitted key">>} ]
+}.
+{end_of_mapping, {6, 2}}.
+{end_of_document, {7, 1}}.
+{end_of_stream, {7, 1}}.
