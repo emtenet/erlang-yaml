@@ -111,19 +111,30 @@ props_empty(From) ->
 
 %=======================================================================
 
-entry(E, Flow) ->
+space_in_flow(E) ->
     case yaml_space:space(E) of
         {{in_line, _, _}, E1} ->
-            entry_detect(E1, Flow);
+            {flow, E1};
 
         {Space = {indent_line, _, _}, E1} ->
             case yaml_event:is_indented(E) of
                 true ->
-                    entry_detect(E1, Flow);
+                    {flow, E1};
 
                 false ->
                     throw({E1, Space})
             end;
+
+        {Space, E1} ->
+            throw({E1, Space})
+    end.
+
+%=======================================================================
+
+entry(E, Flow) ->
+    case space_in_flow(E) of
+        {flow, E1} ->
+            entry_detect(E1, Flow);
 
         {Space, E1} ->
             throw({E1, Space})
@@ -268,8 +279,8 @@ end_of_content(E) ->
 %-----------------------------------------------------------------------
 
 space_after_content(E) ->
-    case yaml_space:space(E) of
-        {{in_line, _, _}, E1} ->
+    case space_in_flow(E) of
+        {flow, E1} ->
             after_content(E1);
 
         {Space, E1} ->

@@ -104,11 +104,11 @@ text(Style, T, S) ->
         $: ->
             text_colon(Style, T, S, yaml_scan:next(S));
 
-        G when Style =:= flow andalso ?IS_FLOW_INDICATOR(G) ->
-            yaml_token:finish(T, S);
-
         G when ?IS_WHITE(G) ->
             text_white(Style, T, S, yaml_scan:next(S));
+
+        G when Style =:= flow andalso ?IS_FLOW_INDICATOR(G) ->
+            yaml_token:finish(T, S);
 
         G when ?IS_PRINTABLE(G) ->
             text(Style, T, yaml_scan:next(S));
@@ -124,10 +124,10 @@ text_colon(Style, T, White, S) ->
         break ->
             yaml_token:finish(T, White);
 
-        G when Style =:= flow andalso ?IS_FLOW_INDICATOR(G) ->
+        G when ?IS_WHITE(G) ->
             yaml_token:finish(T, White);
 
-        G when ?IS_WHITE(G) ->
+        G when Style =:= flow andalso ?IS_FLOW_INDICATOR(G) ->
             yaml_token:finish(T, White);
 
         G when ?IS_PRINTABLE(G) ->
@@ -150,11 +150,11 @@ text_white(Style, T, White, S) ->
         $# ->
             yaml_token:finish(T, White);
 
-        G when Style =:= flow andalso ?IS_FLOW_INDICATOR(G) ->
-            yaml_token:finish(T, White);
-
         G when ?IS_WHITE(G) ->
             text_white(Style, T, White, yaml_scan:next(S));
+
+        G when Style =:= flow andalso ?IS_FLOW_INDICATOR(G) ->
+            yaml_token:finish(T, White);
 
         G when ?IS_PRINTABLE(G) ->
             text(Style, T, yaml_scan:next(S));
@@ -203,6 +203,9 @@ fold_indent(Style, Abort, T, White, S) ->
             Indented = yaml_token:is_indented(T, S),
             fold_white(Style, Abort, T, White, Indented, yaml_scan:next(S));
 
+        G when Style =:= flow andalso ?IS_FLOW_INDICATOR(G) ->
+            fold_abort(Abort);
+
         G when ?IS_PRINTABLE(G) ->
             case yaml_token:is_indented(T, S) of
                 true ->
@@ -227,6 +230,9 @@ fold_white(Style, Abort, T, White, Indented, S) ->
 
         G when ?IS_WHITE(G) ->
             fold_white(Style, Abort, T, White, Indented, yaml_scan:next(S));
+
+        G when Style =:= flow andalso ?IS_FLOW_INDICATOR(G) ->
+            fold_abort(Abort);
 
         G when ?IS_PRINTABLE(G) ->
             case Indented of
