@@ -80,6 +80,9 @@ collection(E, Indicator, Flow, At) ->
 
 end_of_collection(E) ->
     case yaml_event:top(E) of
+        {sequence, flow, _} ->
+            end_of_content(E);
+
         {_, N, _} when N =/= flow ->
             yaml_block:flow_did_end(E);
 
@@ -166,6 +169,9 @@ entry_with_props(E, Props) ->
         $} ->
             Scanned = yaml_event:scan_to(E, yaml_scan:next(S)),
             end_of_mapping(Scanned, Props, yaml_scan:coord(S));
+
+        $[ ->
+            sequence(E, Props);
 
         $] ->
             Scanned = yaml_event:scan_to(E, yaml_scan:next(S)),
