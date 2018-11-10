@@ -1,0 +1,57 @@
+@@@ Example 7.10 Plain Characters
+
+@@@ source
+
+# Outside flow collection:
+- ::vector
+- ": - ()"
+- Up, up, and away!
+- -123
+- http://example.com/foo#bar
+# Inside flow collection:
+- [ ::vector,
+  ": - ()",
+  "Up, up, and away!",
+  -123,
+  http://example.com/foo#bar ]
+
+@@@ events
+
+{start_of_stream, {1, 1}}.
+{start_of_document, {2, 1}}.
+{start_of_sequence, {2, 1}, no_anchor, no_tag}.
+{plain, {2, 3}, {2, 11}, no_anchor, no_tag
+, [ {{2, 3}, {2, 11}, <<"::vector">>} ]
+}.
+{double, {3, 3}, {3, 11}, no_anchor, no_tag
+, [ {{3, 4}, {3, 10}, <<": - ()">>} ]
+}.
+{plain, {4, 3}, {4, 20}, no_anchor, no_tag
+, [ {{4, 3}, {4, 20}, <<"Up, up, and away!">>} ]
+}.
+{plain, {5, 3}, {5, 7}, no_anchor, no_tag
+, [ {{5, 3}, {5, 7}, <<"-123">>} ]
+}.
+{plain, {6, 3}, {6, 29}, no_anchor, no_tag
+, [ {{6, 3}, {6, 29}, <<"http://example.com/foo#bar">>} ]
+}.
+{start_of_sequence, {8, 3}, no_anchor, no_tag}.
+{plain, {8, 5}, {8, 13}, no_anchor, no_tag
+, [ {{8, 5}, {8, 13}, <<"::vector">>} ]
+}.
+{double, {9, 3}, {9, 11}, no_anchor, no_tag
+, [ {{9, 4}, {9, 10}, <<": - ()">>} ]
+}.
+{double, {10, 3}, {10, 22}, no_anchor, no_tag
+, [ {{10, 4}, {10, 21}, <<"Up, up, and away!">>} ]
+}.
+{plain, {11, 3}, {11, 7}, no_anchor, no_tag
+, [ {{11, 3}, {11, 7}, <<"-123">>} ]
+}.
+{plain, {12, 3}, {12, 29}, no_anchor, no_tag
+, [ {{12, 3}, {12, 29}, <<"http://example.com/foo#bar">>} ]
+}.
+{end_of_sequence, {12, 31}}.
+{end_of_sequence, {13, 1}}.
+{end_of_document, {13, 1}}.
+{end_of_stream, {13, 1}}.

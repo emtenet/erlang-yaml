@@ -175,6 +175,9 @@ entry_with_props(E, Props) ->
             Scanned = yaml_event:scan_to(E, yaml_scan:next(S)),
             comma(Scanned, Props, yaml_scan:coord(S));
 
+        G when ?IS_PLAIN_CHECK_INDICATOR(G) ->
+            scalar(yaml_plain:scalar(E, flow, Props));
+
         G when ?IS_INDICATOR(G) ->
             throw({E, Props, G});
 
