@@ -19,6 +19,9 @@
 
 stream(E0) ->
     case yaml_space:space(E0) of
+        {{end_of, directives, At}, E1} ->
+            directive_start(E1, At);
+
         {Space = {indent_line, 0, 0}, E1} ->
             block_or_directive(E1, Space);
 
@@ -30,6 +33,11 @@ stream(E0) ->
 
 start_of_document(E, Next) ->
     At = yaml_event:coord(E),
+    start_of_document(E, At, Next).
+
+%-----------------------------------------------------------------------
+
+start_of_document(E, At, Next) ->
     E1 = yaml_event:push(E, document, -1, At),
     Event = {start_of_document, At},
     yaml_event:emit(Event, E1, Next).
@@ -49,6 +57,12 @@ block_or_directive(E, Space) ->
             Next = fun (EE) -> yaml_block:document(EE, Space) end,
             start_of_document(E, Next)
     end.
+
+%-----------------------------------------------------------------------
+
+directive_start(E, At) ->
+    Next = fun directive_end/1,
+    start_of_document(E, At, Next).
 
 %-----------------------------------------------------------------------
 
@@ -81,13 +95,23 @@ directive_end(E) ->
             yaml_block:document(E1, Space);
 
         {Space = {indent_line, _, _}, E1} ->
-            yaml_block:document(E1, Space)
+            yaml_block:document(E1, Space);
+
+        {{end_of, document, _}, E1} ->
+            At = yaml_event:coord(E),
+            Event = {empty, At, At, no_anchor, no_tag},
+            Next = fun document_suffix/1,
+            yaml_event:emit(Event, E1, Next)
     end.
 
 %=======================================================================
 
 document_suffix(E) ->
     case yaml_space:space(E) of
+        {{end_of, directives, At}, E1} ->
+            Next = fun (EE) -> directive_start(EE, At) end,
+            document_did_end(E1, At, Next);
+
         {{end_of, document, At}, E1} ->
             Next = fun stream/1,
             document_did_end(E1, At, Next);
