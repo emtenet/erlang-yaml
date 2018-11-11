@@ -131,12 +131,20 @@ document_suffix(E) ->
 -spec block_did_end(yaml_event:state(), yaml_space:space()) ->
     yaml_event:emit().
 
-block_did_end(E, {end_of, document, _}) ->
-    document_suffix(E);
-block_did_end(E, {end_of, stream, _}) ->
-    At = yaml_event:coord(E),
-    Next = fun yaml_event:stream_should_end/1,
-    document_did_end(E, At, Next).
+block_did_end(E, Space) ->
+    case Space of
+        {end_of, directives, At} ->
+            Next = fun (EE) -> directive_start(EE, At) end,
+            document_did_end(E, At, Next);
+
+        {end_of, document, _} ->
+            document_suffix(E);
+
+        {end_of, stream, _} ->
+            At = yaml_event:coord(E),
+            Next = fun yaml_event:stream_should_end/1,
+            document_did_end(E, At, Next)
+    end.
 
 %-----------------------------------------------------------------------
 
