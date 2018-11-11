@@ -3,7 +3,7 @@
 %% See LICENSE for licensing information.
 -module(yaml_document).
 
--export([ document_may_start/1
+-export([ stream/1
         , block_did_end/2
         ]).
 
@@ -15,12 +15,12 @@
 
 %=======================================================================
 
--spec document_may_start(yaml_event:state()) -> yaml_event:emit().
+-spec stream(yaml_event:state()) -> yaml_event:emit().
 
-document_may_start(E0) ->
+stream(E0) ->
     case yaml_space:space(E0) of
         {Space = {indent_line, 0, 0}, E1} ->
-            start_of_document(E1, Space);
+            block_or_directive(E1, Space);
 
         {{end_of, stream, _}, E1} ->
             yaml_event:stream_should_end(E1)
@@ -28,12 +28,55 @@ document_may_start(E0) ->
 
 %=======================================================================
 
-start_of_document(E, Space) ->
+start_of_document(E, Next) ->
     At = yaml_event:coord(E),
     E1 = yaml_event:push(E, document, -1, At),
     Event = {start_of_document, At},
-    Next = fun (EE) -> yaml_block:document(EE, Space) end,
     yaml_event:emit(Event, E1, Next).
+
+%-----------------------------------------------------------------------
+
+block_or_directive(E, Space) ->
+    case yaml_event:grapheme(E) of
+        $% ->
+            Next = fun (EE) -> directive(EE) end,
+            start_of_document(E, Next);
+
+        _ ->
+            Next = fun (EE) -> yaml_block:document(EE, Space) end,
+            start_of_document(E, Next)
+    end.
+
+%-----------------------------------------------------------------------
+
+directive(E) ->
+    {Directive, Errors, E1} = yaml_directive:document(E),
+    directive_emit(E1, Errors, Directive).
+
+%-----------------------------------------------------------------------
+
+directive_emit(E, [Error | Errors], Directive) ->
+    Next = fun (EE) -> directive_emit(EE, Errors, Directive) end,
+    yaml_event:error(Error, E, Next);
+directive_emit(E, [], Directive) ->
+    Next = fun (EE) -> directive_next(EE) end,
+    yaml_event:emit(Directive, E, Next).
+
+%-----------------------------------------------------------------------
+
+directive_next(E) ->
+    case yaml_space:space(E) of
+        {{end_of, directives, _}, E1} ->
+            directive_end(E1)
+    end.
+
+%-----------------------------------------------------------------------
+
+directive_end(E) ->
+    case yaml_space:space(E) of
+        {Space = {in_line, _, _}, E1} ->
+            yaml_block:document(E1, Space)
+    end.
 
 %=======================================================================
 

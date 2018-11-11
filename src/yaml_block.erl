@@ -17,9 +17,10 @@
 
 -spec document(yaml_event:state(), yaml_space:space()) -> yaml_event:emit().
 
-document(E, Space = {indent_line, _, _}) ->
-    % new block like after a '-', '?', or ':' indicator
-    after_indicator(E, Space).
+document(E, {in_line, N, _}) ->
+    detect_block(E, 3 + N);
+document(E, {indent_line, N, _}) ->
+    detect_block(E, N).
 
 %=======================================================================
 

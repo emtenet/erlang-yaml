@@ -122,7 +122,7 @@ end_of_events(#event{}) ->
 
 start_of_stream(E = #event{scan = S}) ->
     Event = {start_of_stream, yaml_scan:coord(S)},
-    Next = fun yaml_document:document_may_start/1,
+    Next = fun yaml_document:stream/1,
     emit(Event, E, Next).
 
 %=======================================================================
