@@ -1,0 +1,31 @@
+@@@ Example 9.3 Bare Documents
+
+@@@ source
+
+Bare
+document
+...
+# No document
+...
+|
+%!PS-Adobe-2.0 # Not the first line
+
+@@@ events
+
+{start_of_stream, {1, 1}}.
+{start_of_document, {1, 1}}.
+{plain, {1, 1}, {2, 9}, no_anchor, no_tag
+, [ {{1, 1}, {1, 5}, <<"Bare">>}
+  , {{1, 5}, {2, 1}, <<" ">>}
+  , {{2, 1}, {2, 9}, <<"document">>}
+  ]
+}.
+{end_of_document, {5, 1}}.
+{start_of_document, {6, 1}}.
+{literal, {6, 1}, {8, 1}, no_anchor, no_tag
+, [ {{7, 1}, {7, 36}, <<"%!PS-Adobe-2.0 # Not the first line">>}
+  , {{7, 36}, {8, 1}, <<"\n">>}
+  ]
+}.
+{end_of_document, {8, 1}}.
+{end_of_stream, {8, 1}}.

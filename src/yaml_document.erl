@@ -88,6 +88,10 @@ directive_end(E) ->
 
 document_suffix(E) ->
     case yaml_space:space(E) of
+        {{end_of, document, At}, E1} ->
+            Next = fun stream/1,
+            document_did_end(E1, At, Next);
+
         {{end_of, stream, At}, E1} ->
             Next = fun yaml_event:stream_should_end/1,
             document_did_end(E1, At, Next)
