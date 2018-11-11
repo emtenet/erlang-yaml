@@ -92,6 +92,9 @@ collection(E, Indicator, Flow, At) ->
 
 end_of_collection(E) ->
     case yaml_event:top(E) of
+        {pair_key, flow, _} ->
+            end_of_content(E);
+
         {sequence, flow, _} ->
             end_of_content(E);
 
@@ -148,7 +151,7 @@ entry_detect(E, mapping) ->
             explicit_key(E);
 
         explicit_value ->
-            explicit_value_missing_key(E);
+            explicit_missing_key(E);
 
         implicit_key ->
             implicit_key(E);
@@ -163,6 +166,9 @@ entry_detect(E, sequence) ->
     case yaml_implicit:detect(E, flow) of
         explicit_key ->
             explicit_pair(E);
+
+        explicit_value ->
+            explicit_pair_missing_key(E);
 
         implicit_key ->
             implicit_pair(E);
@@ -191,6 +197,9 @@ entry_with_props(E, Props) ->
 
         $\" ->
             scalar(yaml_double:scalar(E, flow, Props));
+
+        ${ ->
+            mapping(E, Props);
 
         $} ->
             Scanned = yaml_event:scan_to(E, yaml_scan:next(S)),
@@ -400,14 +409,27 @@ explicit_pair(E) ->
 
 %=======================================================================
 
-explicit_value_missing_key(E) ->
+explicit_missing_key(E) ->
+    explicit_missing_key(E, value).
+
+%-----------------------------------------------------------------------
+
+explicit_missing_key(E, Flow) ->
     S = yaml_event:scan(E),
     At = yaml_scan:coord(S),
     $: = yaml_scan:grapheme(S),
     Scanned = yaml_event:scan_to(E, yaml_scan:next(S)),
-    Pushed = yaml_event:push(Scanned, value, flow, At),
-    Next = fun (EE) -> entry(EE, value) end,
+    Pushed = yaml_event:push(Scanned, Flow, flow, At),
+    Next = fun (EE) -> entry(EE, Flow) end,
     empty(Pushed, At, Next).
+
+%=======================================================================
+
+explicit_pair_missing_key(E) ->
+    At = yaml_event:coord(E),
+    Event = {start_of_mapping, At, no_anchor, no_tag},
+    Next = fun (EE) -> explicit_missing_key(EE, pair_value) end,
+    yaml_event:emit(Event, E, Next).
 
 %=======================================================================
 

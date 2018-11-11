@@ -89,7 +89,7 @@ detect_scalar(S, Stack) ->
             detect_collection(yaml_scan:next(S), [$} | Stack]);
 
         $[ ->
-            detect_collection(yaml_scan:next(S), [$} | Stack]);
+            detect_collection(yaml_scan:next(S), [$] | Stack]);
 
         G when ?IS_RESERVED_INDICATOR(G) ->
             detect_plain_white(S, Stack);
@@ -164,6 +164,9 @@ detect_plain(S, Stack) ->
         G when ?IS_WHITE(G) ->
             detect_plain_white(yaml_scan:next(S), Stack);
 
+        G when ?IS_FLOW_INDICATOR(G) andalso hd(Stack) =/= block ->
+            detect_continue(S, Stack);
+
         G when ?IS_PRINTABLE(G) ->
             detect_plain(yaml_scan:next(S), Stack);
 
@@ -187,6 +190,9 @@ detect_plain_white(S, Stack) ->
         G when ?IS_WHITE(G) ->
             detect_plain_white(yaml_scan:next(S), Stack);
 
+        G when ?IS_FLOW_INDICATOR(G) andalso hd(Stack) =/= block ->
+            detect_continue(S, Stack);
+
         G when ?IS_PRINTABLE(G) ->
             detect_plain(yaml_scan:next(S), Stack);
 
@@ -206,6 +212,9 @@ detect_plain_colon(Colon, S, Stack) ->
 
         G when ?IS_WHITE(G) ->
             detect_continue(Colon, Stack);
+
+        G when ?IS_FLOW_INDICATOR(G) andalso hd(Stack) =/= block ->
+            detect_continue(S, Stack);
 
         G when ?IS_PRINTABLE(G) ->
             detect_plain(yaml_scan:next(S), Stack);

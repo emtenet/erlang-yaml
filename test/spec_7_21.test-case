@@ -1,0 +1,49 @@
+@@@ Example 7.21 Single Pair Implicit Entries
+
+@@@ source
+
+- [ YAML : separate ]
+- [ : empty key entry ]
+- [ {JSON: like}:adjacent ]
+
+@@@ events
+
+{start_of_stream, {1, 1}}.
+{start_of_document, {1, 1}}.
+{start_of_sequence, {1, 1}, no_anchor, no_tag}.
+{start_of_sequence, {1, 3}, no_anchor, no_tag}.
+{start_of_mapping, {1, 5}, no_anchor, no_tag}.
+{plain, {1, 5}, {1, 9}, no_anchor, no_tag
+, [ {{1, 5}, {1, 9}, <<"YAML">>} ]
+}.
+{plain, {1, 12}, {1, 20}, no_anchor, no_tag
+, [ {{1, 12}, {1, 20}, <<"separate">>} ]
+}.
+{end_of_mapping, {1, 20}}.
+{end_of_sequence, {1, 22}}.
+{start_of_sequence, {2, 3}, no_anchor, no_tag}.
+{start_of_mapping, {2, 5}, no_anchor, no_tag}.
+{empty, {2, 5}, {2, 5}, no_anchor, no_tag}.
+{plain, {2, 7}, {2, 22}, no_anchor, no_tag
+, [ {{2, 7}, {2, 22}, <<"empty key entry">>} ]
+}.
+{end_of_mapping, {2, 22}}.
+{end_of_sequence, {2, 24}}.
+{start_of_sequence, {3, 3}, no_anchor, no_tag}.
+{start_of_mapping, {3, 5}, no_anchor, no_tag}.
+{start_of_mapping, {3, 5}, no_anchor, no_tag}.
+{plain, {3, 6}, {3, 10}, no_anchor, no_tag
+, [ {{3, 6}, {3, 10}, <<"JSON">>} ]
+}.
+{plain, {3, 12}, {3, 16}, no_anchor, no_tag
+, [ {{3, 12}, {3, 16}, <<"like">>} ]
+}.
+{end_of_mapping, {3, 17}}.
+{plain, {3, 18}, {3, 26}, no_anchor, no_tag
+, [ {{3, 18}, {3, 26}, <<"adjacent">>} ]
+}.
+{end_of_mapping, {3, 26}}.
+{end_of_sequence, {3, 28}}.
+{end_of_sequence, {4, 1}}.
+{end_of_document, {4, 1}}.
+{end_of_stream, {4, 1}}.
