@@ -38,6 +38,9 @@ start_of_document(E, Next) ->
 
 block_or_directive(E, Space) ->
     case yaml_event:grapheme(E) of
+        ?BOM ->
+            stream(yaml_event:scan_next(E));
+
         $% ->
             Next = fun (EE) -> directive(EE) end,
             start_of_document(E, Next);

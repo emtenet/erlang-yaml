@@ -28,6 +28,7 @@
         , is_indented/3
         , scan/1
         , scan_to/2
+        , scan_next/1
         , emit/3
         , error/3
         , top/1
@@ -250,6 +251,13 @@ scan(#event{scan = Scan}) ->
 
 scan_to(E = #event{}, Scan) ->
     E#event{scan = Scan}.
+
+%=======================================================================
+
+-spec scan_next(state()) -> state().
+
+scan_next(E = #event{scan = Scan}) ->
+    E#event{scan = yaml_scan:next(Scan)}.
 
 %=======================================================================
 

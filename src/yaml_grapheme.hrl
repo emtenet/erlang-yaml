@@ -3,6 +3,8 @@
 %% See LICENSE for licensing information.
 %=======================================================================
 
+-define(BOM, 16#FEFF).
+
 -define(IS_WHITE(G),
     (       (G =:= $\s)
      orelse (G =:= $\t)
