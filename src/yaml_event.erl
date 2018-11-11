@@ -58,7 +58,7 @@
     {start_of_document, yaml:coord()} |
     {end_of_document, yaml:coord()} |
     {yaml_directive, yaml:version(), yaml:coord(), yaml:coord()} |
-    {reserved_directive, binary(), yaml:coord(), yaml:coord(), list()} |
+    {reserved_directive, yaml:coord(), yaml:coord(), binary(), list()} |
     {start_of_sequence, yaml:coord(), yaml:maybe_anchor(), yaml:maybe_tag()} |
     {end_of_sequence, yaml:coord()} |
     {start_of_mapping, yaml:coord(), yaml:maybe_anchor(), yaml:maybe_tag()} |

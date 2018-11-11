@@ -20,6 +20,8 @@
      orelse (hd(G))
     )).
 
+-define(IS_DIGIT(G), (G >= $0) andalso (G =< $9)).
+
 -define(INDICATOR, "-?:,[]{}#&*!|>'\"%@`").
 
 -define(IS_INDICATOR(G),

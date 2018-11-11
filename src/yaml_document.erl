@@ -78,7 +78,19 @@ directive_next(E) ->
 directive_end(E) ->
     case yaml_space:space(E) of
         {Space = {in_line, _, _}, E1} ->
+            yaml_block:document(E1, Space);
+
+        {Space = {indent_line, _, _}, E1} ->
             yaml_block:document(E1, Space)
+    end.
+
+%=======================================================================
+
+document_suffix(E) ->
+    case yaml_space:space(E) of
+        {{end_of, stream, At}, E1} ->
+            Next = fun yaml_event:stream_should_end/1,
+            document_did_end(E1, At, Next)
     end.
 
 %=======================================================================
@@ -86,6 +98,8 @@ directive_end(E) ->
 -spec block_did_end(yaml_event:state(), yaml_space:space()) ->
     yaml_event:emit().
 
+block_did_end(E, {end_of, document, _}) ->
+    document_suffix(E);
 block_did_end(E, {end_of, stream, _}) ->
     At = yaml_event:coord(E),
     Next = fun yaml_event:stream_should_end/1,
