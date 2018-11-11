@@ -1,0 +1,27 @@
+@@@ Example 7.22 Invalid Implicit Keys
+
+@@@ source
+
+[ foo
+ bar: invalid ]
+
+@@@ events
+
+{start_of_stream, {1, 1}}.
+{start_of_document, {1, 1}}.
+{start_of_sequence, {1, 1}, no_anchor, no_tag}.
+{plain, {1, 3}, {2, 5}, no_anchor, no_tag
+, [ {{1, 3}, {1, 6}, <<"foo">>}
+  , {{1, 6}, {2, 2}, <<" ">>}
+  , {{2, 2}, {2, 5}, <<"bar">>}
+  ]
+}.
+{error
+, {bad_implicit_key, {2, 5}, {2, 5}, {sequence, {1, 1}, {2, 5}}}
+}.
+{plain, {2, 7}, {2, 14}, no_anchor, no_tag
+, [ {{2, 7}, {2, 14}, <<"invalid">>} ]
+}.
+{end_of_sequence, {2, 16}}.
+{end_of_document, {3, 1}}.
+{end_of_stream, {3, 1}}.

@@ -341,6 +341,11 @@ colon_after_content(E, At) ->
         {pair_key, flow, _} ->
             entry(yaml_event:top(E, pair_value, flow, At), value);
 
+        {sequence, flow, From} ->
+            Next = fun (EE) -> comma_after_content(EE, At) end,
+            Error = {bad_implicit_key, At, At, {sequence, From, At}},
+            yaml_event:error(Error, E, Next);
+
         T ->
             throw({E, At, T})
     end.
