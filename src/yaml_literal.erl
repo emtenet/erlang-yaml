@@ -213,7 +213,11 @@ auto_indented(T, Start, Indent, S) ->
 line_break(T, Indent, Break, S) ->
     case yaml_scan:end_of(S) of
         false ->
-            line_indent(T, Indent, Break, S, S)
+            line_indent(T, Indent, Break, S, S);
+
+        _ ->
+            T1 = yaml_token:keep(T, Break, S),
+            yaml_token:finish(T1, S)
     end.
 
 %-----------------------------------------------------------------------

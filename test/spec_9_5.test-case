@@ -1,0 +1,29 @@
+@@@ Example 9.5 Directives Documents
+
+@@@ source
+
+%YAML 1.2
+--- |
+%!PS-Adobe-2.0
+...
+%YAML 1.2
+---
+# Empty
+...
+
+@@@ events
+
+{start_of_stream, {1, 1}}.
+{start_of_document, {1, 1}}.
+{yaml_directive, {1, 1}, {1, 10}, {1, 2}}.
+{literal, {2, 5}, {4, 1}, no_anchor, no_tag
+, [ {{3, 1}, {3, 15}, <<"%!PS-Adobe-2.0">>}
+  , {{3, 15}, {4, 1}, <<"\n">>}
+  ]
+}.
+{end_of_document, {5, 1}}.
+{start_of_document, {5, 1}}.
+{yaml_directive, {5, 1}, {5, 10}, {1, 2}}.
+{empty, {6, 4}, {6, 4}, no_anchor, no_tag}.
+{end_of_document, {9, 1}}.
+{end_of_stream, {9, 1}}.

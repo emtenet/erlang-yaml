@@ -112,6 +112,11 @@ document_suffix(E) ->
             Next = fun (EE) -> directive_start(EE, At) end,
             document_did_end(E1, At, Next);
 
+        {Space = {indent_line, 0, 0}, E1} ->
+            At = yaml_event:coord(E1),
+            Next = fun (EE) -> block_or_directive(EE, Space) end,
+            document_did_end(E1, At, Next);
+
         {{end_of, document, At}, E1} ->
             Next = fun stream/1,
             document_did_end(E1, At, Next);
