@@ -42,7 +42,7 @@ end_of_mapping(E, At) ->
         {value, flow, From} ->
             Next = fun (EE) -> end_of_mapping(EE, At) end,
             empty_after_indicator(yaml_event:pop(E), From, Next);
-            
+
         {mapping, flow, _} ->
             Event = {end_of_mapping, yaml_event:coord(E)},
             Next = fun (EE) -> end_of_collection(EE) end,
@@ -161,6 +161,9 @@ entry_detect(E, mapping) ->
     end;
 entry_detect(E, sequence) ->
     case yaml_implicit:detect(E, flow) of
+        explicit_key ->
+            explicit_pair(E);
+
         implicit_key ->
             implicit_pair(E);
 
@@ -259,6 +262,9 @@ end_of_content(E) ->
 
         {key, flow, _} ->
             space_after_content(E);
+
+        {pair_explicit, flow, At} ->
+            space_after_content(yaml_event:top(E, pair_key, flow, At));
 
         {pair_key, flow, _} ->
             space_after_content(E);
@@ -379,6 +385,18 @@ explicit_key(E) ->
     Scanned = yaml_event:scan_to(E, yaml_scan:next(S)),
     Pushed = yaml_event:push(Scanned, explicit, flow, At),
     entry(Pushed, explicit).
+
+%=======================================================================
+
+explicit_pair(E) ->
+    S = yaml_event:scan(E),
+    At = yaml_scan:coord(S),
+    $? = yaml_scan:grapheme(S),
+    Scanned = yaml_event:scan_to(E, yaml_scan:next(S)),
+    Pushed = yaml_event:push(Scanned, pair_explicit, flow, At),
+    Event = {start_of_mapping, At, no_anchor, no_tag},
+    Next = fun (EE) -> entry(EE, explicit) end,
+    yaml_event:emit(Event, Pushed, Next).
 
 %=======================================================================
 

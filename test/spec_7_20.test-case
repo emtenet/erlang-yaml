@@ -1,0 +1,28 @@
+@@@ Example 7.20 Single Pair Explicit Entry
+
+@@@ source
+
+[
+? foo
+ bar : baz
+]
+
+@@@ events
+
+{start_of_stream, {1, 1}}.
+{start_of_document, {1, 1}}.
+{start_of_sequence, {1, 1}, no_anchor, no_tag}.
+{start_of_mapping, {2, 1}, no_anchor, no_tag}.
+{plain, {2, 3}, {3, 5}, no_anchor, no_tag
+, [ {{2, 3}, {2, 6}, <<"foo">>}
+  , {{2, 6}, {3, 2}, <<" ">>}
+  , {{3, 2}, {3, 5}, <<"bar">>}
+  ]
+}.
+{plain, {3, 8}, {3, 11}, no_anchor, no_tag
+, [ {{3, 8}, {3, 11}, <<"baz">>} ]
+}.
+{end_of_mapping, {3, 11}}.
+{end_of_sequence, {4, 2}}.
+{end_of_document, {5, 1}}.
+{end_of_stream, {5, 1}}.
