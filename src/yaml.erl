@@ -7,6 +7,7 @@
              , maybe_anchor/0
              , maybe_tag/0
              , props/0
+             , version/0
              ]).
 
 %=======================================================================
@@ -20,6 +21,8 @@
         , anchor := maybe_anchor()
         , tag := maybe_tag()
         }.
+
+-type version() :: {non_neg_integer(), non_neg_integer()}.
 
 %=======================================================================
 

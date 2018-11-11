@@ -125,11 +125,11 @@ space_in_flow(E) ->
                     {flow, E1};
 
                 false ->
-                    throw({E1, Space})
+                    {Space, E1}
             end;
 
         {Space, E1} ->
-            throw({E1, Space})
+            {Space, E1}
     end.
 
 %=======================================================================

@@ -10,7 +10,8 @@
 
 %=======================================================================
 
--spec document(yaml_event:state()) -> yaml_event:emit().
+-spec document(yaml_event:state()) ->
+    {yaml_event:event(), list(), yaml_event:state()}.
 
 document(E) ->
     {T, S} = yaml_token:start(E, directive, fun construct/2, #{}),
