@@ -78,7 +78,7 @@ start(Event, Context, Construct, Store)
     Token = #token
         { event = Event
         , scan = Scan
-        , from = yaml_scan:coord(Scan)
+        , from = start_from(Scan, Store)
         , parts = []
         , errors = []
         , context = Context
@@ -86,6 +86,13 @@ start(Event, Context, Construct, Store)
         , store = Store
         },
     {Token, Scan}.
+
+%-----------------------------------------------------------------------
+
+start_from(_, #{ from := From  }) ->
+    From;
+start_from(Scan, _) ->
+    yaml_scan:coord(Scan).
 
 %=======================================================================
 % FINISH

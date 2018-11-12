@@ -76,8 +76,14 @@ content_start(E, At) ->
 
 content_continue(E, Props) ->
     case yaml_event:grapheme(E) of
+        $& ->
+            property_anchor(E, Props);
+
         $! ->
             property_tag(E, Props);
+
+        $* ->
+            alias(E, Props);
 
         $' ->
             single(E, Props);
@@ -129,6 +135,11 @@ flow_did_end(E) ->
 
 %=======================================================================
 
+alias(E, #{ anchor := no_anchor, tag := no_tag }) ->
+    scalar(yaml_anchor:alias(E)).
+
+%-----------------------------------------------------------------------
+
 plain(E, Props) ->
     scalar(yaml_plain:scalar(E, block, Props)).
 
@@ -170,6 +181,25 @@ props_empty(From) ->
 
 %-----------------------------------------------------------------------
 
+property_anchor(E, Props) ->
+    {Anchor, Errors, E1} = yaml_anchor:property(E),
+    property_anchor(E1, Errors, Anchor, Props).
+
+%-----------------------------------------------------------------------
+
+property_anchor(E, [Error | Errors], Anchor, Props) ->
+    Next = fun (EE) -> property_anchor(EE, Errors, Anchor, Props) end,
+    yaml_event:error(Error, E, Next);
+property_anchor(E, [], Anchor, Props = #{ anchor := no_anchor }) ->
+    after_property(E, Props#{ anchor => Anchor });
+property_anchor(E, [], Anchor, Props = #{ from := Start }) ->
+    {anchor, From, Thru, _} = Anchor,
+    Error = {multiple_anchors, From, Thru, {block, Start, Thru}},
+    Next = fun (EE) -> after_property(EE, Props#{ anchor => Anchor }) end,
+    yaml_token:error(Error, E, Next).
+
+%-----------------------------------------------------------------------
+
 property_tag(E, Props) ->
     {Tag, Errors, E1} = yaml_tag:property(E),
     property_tag(E1, Errors, Tag, Props).
@@ -182,7 +212,7 @@ property_tag(E, [Error | Errors], Tag, Props) ->
 property_tag(E, [], Tag, Props = #{ tag := no_tag }) ->
     after_property(E, Props#{ tag => Tag });
 property_tag(E, [], Tag, Props = #{ from := Start }) ->
-    {_, From, Thru} = Tag,
+    {tag, From, Thru, _} = Tag,
     Error = {multiple_tags, From, Thru, {block, Start, Thru}},
     Next = fun (EE) -> after_property(EE, Props#{ tag => Tag }) end,
     yaml_token:error(Error, E, Next).
@@ -195,7 +225,9 @@ after_property(E, Props) ->
 
 %-----------------------------------------------------------------------
 
-after_property_space(E, Space = {indent_line, N, _}, Props) ->
+after_property_space(E, {in_line, _, _}, Props) ->
+    content_continue(E, Props);
+after_property_space(E, {indent_line, N, _}, Props) ->
     after_property_continue(E, yaml_event:indent_next(E, N), Props).
 
 %-----------------------------------------------------------------------
@@ -203,7 +235,10 @@ after_property_space(E, Space = {indent_line, N, _}, Props) ->
 after_property_continue(E, Continue, Props) ->
     case Continue of
         {block, N} ->
-           after_property_block(E, N, Props) 
+           after_property_block(E, N, Props) ;
+
+        {implicit_key, more_indented, _} ->
+            throw({E, Continue, Props})
     end.
 
 %-----------------------------------------------------------------------

@@ -15,7 +15,7 @@
 
 property(E) ->
     Construct = fun property_construct/2,
-    {T, S} = yaml_token:start(E, tag_property, Construct, #{}),
+    {T, S} = yaml_token:start(E, tag, Construct, #{}),
     $! = yaml_scan:grapheme(S),
     Z = yaml_scan:next(S),
     property_start(T, Z).
@@ -24,8 +24,8 @@ property(E) ->
 
 -spec property_construct(list(), map()) -> {yaml:tag(), list()}.
 
-property_construct([{_, _, Binary}], #{ from := From, thru := Thru }) ->
-    Tag = {Binary, From, Thru},
+property_construct([{_, _, Name}], #{ from := From, thru := Thru }) ->
+    Tag = {tag, From, Thru, Name},
     Errors = [],
     {Tag, Errors}.
 

@@ -13,9 +13,11 @@
 %=======================================================================
 
 -type coord() :: {non_neg_integer(), non_neg_integer()}.
--type maybe_anchor() :: no_anchor.
 
--type tag() :: {binary(), coord(), coord()}.
+-type anchor() :: {anchor, coord(), coord(), binary()}.
+-type maybe_anchor() :: anchor() | no_anchor.
+
+-type tag() :: {tag, coord(), coord(), binary()}.
 -type maybe_tag() :: tag() | no_tag.
 
 -type props() ::

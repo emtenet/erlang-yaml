@@ -64,6 +64,7 @@
     {end_of_sequence, yaml:coord()} |
     {start_of_mapping, yaml:coord(), yaml:maybe_anchor(), yaml:maybe_tag()} |
     {end_of_mapping, yaml:coord()} |
+    {alias, yaml:coord(), yaml:coord(), binary()} |
     {plain, yaml:coord(), yaml:coord(), yaml:maybe_anchor(), yaml:maybe_tag(), list()} |
     {single, yaml:coord(), yaml:coord(), yaml:maybe_anchor(), yaml:maybe_tag(), list()} |
     {double, yaml:coord(), yaml:coord(), yaml:maybe_anchor(), yaml:maybe_tag(), list()} |

@@ -77,7 +77,7 @@ detect_scalar(S, Stack) ->
             detect_double(yaml_scan:next(S), Stack);
 
         $* ->
-            throw(alias);
+            detect_property(yaml_scan:next(S), Stack);
 
         $& ->
             detect_property(yaml_scan:next(S), Stack);
@@ -311,9 +311,6 @@ detect_property(S, Stack) ->
     case yaml_scan:grapheme(S) of
         G when ?IS_WHITE(G) ->
             detect_after_property(yaml_scan:next(S), Stack);
-
-        G when ?IS_FLOW_INDICATOR(G) andalso hd(Stack) =/= block ->
-            detect_continue(S, Stack);
 
         G when ?IS_PRINTABLE(G) ->
             detect_property(yaml_scan:next(S), Stack);

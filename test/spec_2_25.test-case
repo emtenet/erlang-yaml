@@ -14,7 +14,7 @@
 
 {start_of_stream, {1, 1}}.
 {start_of_document, {4, 1}}.
-{start_of_mapping, {4, 5}, no_anchor, {<<"!!set">>, {4, 5}, {4, 10}}}.
+{start_of_mapping, {4, 5}, no_anchor, {tag, {4, 5}, {4, 10}, <<"!!set">>}}.
 {plain, {5, 3}, {5, 15}, no_anchor, no_tag
 , [ {{5, 3}, {5, 15}, <<"Mark McGwire">>} ]
 }.
