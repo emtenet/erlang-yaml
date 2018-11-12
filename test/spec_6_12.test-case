@@ -1,0 +1,47 @@
+@@@ Example 6.12 Separation Spaces
+
+@@@ source
+
+{ first: Sammy, last: Sosa }:
+# Statistics:
+  hr:  # Home runs
+     65
+  avg: # Average
+   0.278
+
+@@@ events
+
+{start_of_stream, {1, 1}}.
+{start_of_document, {1, 1}}.
+{start_of_mapping, {1, 1}, no_anchor, no_tag}.
+{start_of_mapping, {1, 1}, no_anchor, no_tag}.
+{plain, {1, 3}, {1, 8}, no_anchor, no_tag
+, [ {{1, 3}, {1, 8}, <<"first">>} ]
+}.
+{plain, {1, 10}, {1, 15}, no_anchor, no_tag
+, [ {{1, 10}, {1, 15}, <<"Sammy">>} ]
+}.
+{plain, {1, 17}, {1, 21}, no_anchor, no_tag
+, [ {{1, 17}, {1, 21}, <<"last">>} ]
+}.
+{plain, {1, 23}, {1, 27}, no_anchor, no_tag
+, [ {{1, 23}, {1, 27}, <<"Sosa">>} ]
+}.
+{end_of_mapping, {1, 29}}.
+{start_of_mapping, {3, 3}, no_anchor, no_tag}.
+{plain, {3, 3}, {3, 5}, no_anchor, no_tag
+, [ {{3, 3}, {3, 5}, <<"hr">>} ]
+}.
+{plain, {4, 6}, {4, 8}, no_anchor, no_tag
+, [ {{4, 6}, {4, 8}, <<"65">>} ]
+}.
+{plain, {5, 3}, {5, 6}, no_anchor, no_tag
+, [ {{5, 3}, {5, 6}, <<"avg">>} ]
+}.
+{plain, {6, 4}, {6, 9}, no_anchor, no_tag
+, [ {{6, 4}, {6, 9}, <<"0.278">>} ]
+}.
+{end_of_mapping, {7, 1}}.
+{end_of_mapping, {7, 1}}.
+{end_of_document, {7, 1}}.
+{end_of_stream, {7, 1}}.
