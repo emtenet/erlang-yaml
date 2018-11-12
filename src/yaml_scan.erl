@@ -7,6 +7,7 @@
         , next/1
         % INFO
         , coord/1
+        , coord_row/1
         , consumed/2
         , grapheme/1
         , is_indented/2
@@ -238,6 +239,13 @@ prepare_tester(Line, Binary, Next, Scan = #scan{}) when is_binary(Binary) ->
 
 coord(#scan{r = R, c = C}) ->
     {R, C}.
+
+%=======================================================================
+
+-spec coord_row(state()) -> yaml:coord().
+
+coord_row(#scan{r = R}) ->
+    {R, 1}.
 
 %=======================================================================
 

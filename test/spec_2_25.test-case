@@ -1,0 +1,32 @@
+@@@ Example 2.25 Unordered Sets
+
+@@@ source
+
+# Sets are represented as a
+# Mapping where each key is
+# associated with a null value
+--- !!set
+? Mark McGwire
+? Sammy Sosa
+? Ken Griff
+
+@@@ events
+
+{start_of_stream, {1, 1}}.
+{start_of_document, {4, 1}}.
+{start_of_mapping, {4, 5}, no_anchor, {<<"!!set">>, {4, 5}, {4, 10}}}.
+{plain, {5, 3}, {5, 15}, no_anchor, no_tag
+, [ {{5, 3}, {5, 15}, <<"Mark McGwire">>} ]
+}.
+{empty, {6, 1}, {6, 1}, no_anchor, no_tag}.
+{plain, {6, 3}, {6, 13}, no_anchor, no_tag
+, [ {{6, 3}, {6, 13}, <<"Sammy Sosa">>} ]
+}.
+{empty, {7, 1}, {7, 1}, no_anchor, no_tag}.
+{plain, {7, 3}, {7, 12}, no_anchor, no_tag
+, [ {{7, 3}, {7, 12}, <<"Ken Griff">>} ]
+}.
+{empty, {8, 1}, {8, 1}, no_anchor, no_tag}.
+{end_of_mapping, {8, 1}}.
+{end_of_document, {8, 1}}.
+{end_of_stream, {8, 1}}.

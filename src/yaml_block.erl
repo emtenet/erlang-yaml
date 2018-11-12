@@ -76,6 +76,9 @@ content_start(E, At) ->
 
 content_continue(E, Props) ->
     case yaml_event:grapheme(E) of
+        $! ->
+            property_tag(E, Props);
+
         $' ->
             single(E, Props);
 
@@ -164,6 +167,52 @@ after_scalar(E, []) ->
 
 props_empty(From) ->
     #{ from => From, anchor => no_anchor, tag => no_tag }.
+
+%-----------------------------------------------------------------------
+
+property_tag(E, Props) ->
+    {Tag, Errors, E1} = yaml_tag:property(E),
+    property_tag(E1, Errors, Tag, Props).
+
+%-----------------------------------------------------------------------
+
+property_tag(E, [Error | Errors], Tag, Props) ->
+    Next = fun (EE) -> property_tag(EE, Errors, Tag, Props) end,
+    yaml_event:error(Error, E, Next);
+property_tag(E, [], Tag, Props = #{ tag := no_tag }) ->
+    after_property(E, Props#{ tag => Tag });
+property_tag(E, [], Tag, Props = #{ from := Start }) ->
+    {_, From, Thru} = Tag,
+    Error = {multiple_tags, From, Thru, {block, Start, Thru}},
+    Next = fun (EE) -> after_property(EE, Props#{ tag => Tag }) end,
+    yaml_token:error(Error, E, Next).
+
+%-----------------------------------------------------------------------
+
+after_property(E, Props) ->
+    {Space, E1} = yaml_space:space(E),
+    after_property_space(E1, Space, Props).
+
+%-----------------------------------------------------------------------
+
+after_property_space(E, Space = {indent_line, N, _}, Props) ->
+    after_property_continue(E, yaml_event:indent_next(E, N), Props).
+
+%-----------------------------------------------------------------------
+
+after_property_continue(E, Continue, Props) ->
+    case Continue of
+        {block, N} ->
+           after_property_block(E, N, Props) 
+    end.
+
+%-----------------------------------------------------------------------
+
+after_property_block(E, N, Props) ->
+    case yaml_implicit:detect(E, block) of
+        explicit_key ->
+            explicit_key_first(yaml_event:pop(E), N, Props)
+    end.
 
 %=======================================================================
 
@@ -256,6 +305,12 @@ after_block_sequence_or_pop(E, Space, N) ->
 
 after_block_pop(E, Space) ->
     case yaml_event:top(E) of
+        {explicit_key, _, _} ->
+            Next = fun (EE) ->
+                after_block_pop_end_of(EE, Space, end_of_mapping)
+            end,
+            explicit_value_empty(E, Next);
+
         {explicit_value, _, _} ->
             after_block_pop_end_of(E, Space, end_of_mapping);
 
@@ -270,8 +325,8 @@ after_block_pop(E, Space) ->
 
 after_block_pop_end_of(E, Space, EndOf) ->
     Next = fun (EE) -> after_block(EE, Space) end,
-    {R, _} = yaml_event:coord(E),
-    Event = {EndOf, {R, 1}},
+    At = yaml_event:coord_row(E),
+    Event = {EndOf, At},
     yaml_event:emit(Event, yaml_event:pop(E), Next).
 
 %=======================================================================
@@ -327,6 +382,13 @@ explicit_key_first(E, N) ->
 
 %-----------------------------------------------------------------------
 
+explicit_key_first(E, N, #{ from := From, tag := Tag, anchor := Anchor }) ->
+    Event = {start_of_mapping, From, Anchor, Tag},
+    Next = fun (EE) -> push_indicator(EE, $?, explicit_key, N) end,
+    yaml_event:emit(Event, E, Next).
+
+%-----------------------------------------------------------------------
+
 explicit_key_next(E, N) ->
     push_indicator(yaml_event:pop(E), $?, explicit_key, N).
 
@@ -335,7 +397,7 @@ explicit_key_next(E, N) ->
 explicit_value_empty(E, Next) ->
     case yaml_event:top(E) of
         {explicit_key, _, _} ->
-            At = yaml_event:coord(E),
+            At = yaml_event:coord_row(E),
             Event = {empty, At, At, no_anchor, no_tag},
             yaml_event:emit(Event, E, Next);
 

@@ -18,6 +18,7 @@
         ]).
 
 -export([ coord/1
+        , coord_row/1
         , grapheme/1
         , indent/1
         , indent_after_indicator/2
@@ -144,6 +145,13 @@ stream_should_end(E = #event{scan = S}) ->
 
 coord(#event{scan = Scan}) ->
     yaml_scan:coord(Scan).
+
+%=======================================================================
+
+-spec coord_row(state()) -> yaml:coord().
+
+coord_row(#event{scan = Scan}) ->
+    yaml_scan:coord_row(Scan).
 
 %=======================================================================
 

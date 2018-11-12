@@ -80,10 +80,10 @@ detect_scalar(S, Stack) ->
             throw(alias);
 
         $& ->
-            throw(anchor);
+            detect_property(yaml_scan:next(S), Stack);
 
         $! ->
-            throw(property);
+            detect_property(yaml_scan:next(S), Stack);
 
         ${ ->
             detect_collection(yaml_scan:next(S), [$} | Stack]);
@@ -303,5 +303,36 @@ detect_mapping(S, Stack) ->
 
         _ ->
             detect_plain(S, Stack)
+    end.
+
+%=======================================================================
+
+detect_property(S, Stack) ->
+    case yaml_scan:grapheme(S) of
+        G when ?IS_WHITE(G) ->
+            detect_after_property(yaml_scan:next(S), Stack);
+
+        G when ?IS_FLOW_INDICATOR(G) andalso hd(Stack) =/= block ->
+            detect_continue(S, Stack);
+
+        G when ?IS_PRINTABLE(G) ->
+            detect_property(yaml_scan:next(S), Stack);
+
+        _ ->
+            false
+    end.
+
+%-----------------------------------------------------------------------
+
+detect_after_property(S, Stack) ->
+    case yaml_scan:grapheme(S) of
+        $# ->
+            false;
+
+        G when ?IS_WHITE(G) ->
+            detect_after_property(yaml_scan:next(S), Stack);
+
+        _ ->
+            detect_scalar(S, Stack)
     end.
 

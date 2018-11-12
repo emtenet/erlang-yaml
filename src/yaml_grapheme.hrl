@@ -22,6 +22,12 @@
 
 -define(IS_DIGIT(G), (G >= $0) andalso (G =< $9)).
 
+-define(IS_HEX_DIGIT(C),
+    (       (C >= $0 andalso C =< $9)
+     orelse (C >= $A andalso C =< $F)
+     orelse (C >= $a andalso C =< $F)
+    )).
+
 -define(INDICATOR, "-?:,[]{}#&*!|>'\"%@`").
 
 -define(IS_INDICATOR(G),
@@ -76,5 +82,40 @@
      orelse (C =:= $])
      orelse (C =:= $})
      orelse (C =:= $%)
+    )).
+
+-define(IS_WORD_CHAR(C),
+    (       (C >= $0 andalso C =< $9)
+     orelse (C >= $A andalso C =< $Z)
+     orelse (C >= $a andalso C =< $z)
+     orelse (C =:= $-)
+    )).
+
+-define(IS_URI_CHAR(C),
+    (       (C =:= $%)
+     orelse (C >= $0 andalso C =< $9)
+     orelse (C >= $A andalso C =< $Z)
+     orelse (C >= $a andalso C =< $z)
+     orelse (C =:= $#)
+     orelse (C =:= $;)
+     orelse (C =:= $/)
+     orelse (C =:= $?)
+     orelse (C =:= $:)
+     orelse (C =:= $@)
+     orelse (C =:= $&)
+     orelse (C =:= $=)
+     orelse (C =:= $+)
+     orelse (C =:= $$)
+     orelse (C =:= $,)
+     orelse (C =:= $_)
+     orelse (C =:= $.)
+     orelse (C =:= $!)
+     orelse (C =:= $~)
+     orelse (C =:= $*)
+     orelse (C =:= $')
+     orelse (C =:= $()
+     orelse (C =:= $))
+     orelse (C =:= $[)
+     orelse (C =:= $])
     )).
 

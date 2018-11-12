@@ -14,7 +14,9 @@
 
 -type coord() :: {non_neg_integer(), non_neg_integer()}.
 -type maybe_anchor() :: no_anchor.
--type maybe_tag() :: no_tag.
+
+-type tag() :: {binary(), coord(), coord()}.
+-type maybe_tag() :: tag() | no_tag.
 
 -type props() ::
        #{ from := coord()
