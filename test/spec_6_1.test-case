@@ -1,0 +1,54 @@
+@@@ Example 6.1 Indentation Spaces
+
+@@@ source
+
+  # Leading comment line spaces are
+   # neither content nor indentation.
+   @SPACE@
+Not indented:
+ By one space: |
+    By four
+      spaces
+ Flow style: [    # Leading spaces
+   By two,        # in flow style
+  Also by two,    # are neither
+  @TAB@Still by two   # content nor
+    ]             # indentation.
+
+@@@ events
+
+{start_of_stream, {1, 1}}.
+{start_of_document, {4, 1}}.
+{start_of_mapping, {4, 1}, no_anchor, no_tag}.
+{plain, {4, 1}, {4, 13}, no_anchor, no_tag
+, [ {{4, 1}, {4, 13}, <<"Not indented">>} ]
+}.
+{start_of_mapping, {5, 2}, no_anchor, no_tag}.
+{plain, {5, 2}, {5, 14}, no_anchor, no_tag
+, [ {{5, 2}, {5, 14}, <<"By one space">>} ]
+}.
+{literal, {5, 16}, {8, 1}, no_anchor, no_tag
+, [ {{6, 5}, {6, 12}, <<"By four">>}
+  , {{6, 12}, {7, 5}, <<"\n">>}
+  , {{7, 5}, {7, 13}, <<"  spaces">>}
+  , {{7, 13}, {8, 1}, <<"\n">>}
+  ]
+}.
+{plain, {8, 2}, {8, 12}, no_anchor, no_tag
+, [ {{8, 2}, {8, 12}, <<"Flow style">>} ]
+}.
+{start_of_sequence, {8, 14}, no_anchor, no_tag}.
+{plain, {9, 4}, {9, 10}, no_anchor, no_tag
+, [ {{9, 4}, {9, 10}, <<"By two">>} ]
+}.
+{plain, {10, 3}, {10, 14}, no_anchor, no_tag
+, [ {{10, 3}, {10, 14}, <<"Also by two">>} ]
+}.
+{plain, {11, 4}, {11, 16}, no_anchor, no_tag
+, [ {{11, 4}, {11, 16}, <<"Still by two">>} ]
+}.
+{end_of_sequence, {12, 6}}.
+{end_of_mapping, {13, 1}}.
+{end_of_mapping, {13, 1}}.
+{end_of_document, {13, 1}}.
+{end_of_stream, {13, 1}}.

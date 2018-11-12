@@ -278,6 +278,9 @@ detect_collection(S, Stack) ->
         G when G =:= hd(Stack) ->
             detect_continue(yaml_scan:next(S), tl(Stack));
 
+        $# ->
+            false;
+
         $, ->
             detect_collection(yaml_scan:next(S), Stack);
 
