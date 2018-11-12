@@ -4,6 +4,14 @@
 -module(yaml_test).
 -include_lib("eunit/include/eunit.hrl").
 
+-export([ manual/1 ]).
+
+%=======================================================================
+
+manual(File) ->
+    {Dir, _} = yaml_test_case:list(),
+    execute_test_case(Dir, File).
+
 %=======================================================================
 
 all_test_() ->

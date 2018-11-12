@@ -25,7 +25,7 @@ list() ->
     {ok, AllFiles} = file:list_dir(TestDir),
     IsTestCase = fun (File) -> ".test-case" == filename:extension(File) end,
     TestCases = lists:filter(IsTestCase, AllFiles),
-    {TestDir, TestCases}.
+    {TestDir, lists:sort(TestCases)}.
 
 %=======================================================================
 
