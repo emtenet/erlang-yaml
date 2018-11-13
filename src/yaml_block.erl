@@ -135,6 +135,18 @@ flow_did_end(E) ->
 
 %=======================================================================
 
+empty(E, At = {_, _}, Next) ->
+    Event = {empty, At, At, no_anchor, no_tag},
+    yaml_event:emit(Event, E, Next).
+
+%-----------------------------------------------------------------------
+
+empty(E, #{ from := From, anchor := Anchor, tag := Tag }, Thru, Next) ->
+    Event = {empty, From, Thru, Anchor, Tag},
+    yaml_event:emit(Event, E, Next).
+
+%=======================================================================
+
 alias(E, #{ anchor := no_anchor, tag := no_tag }) ->
     scalar(yaml_anchor:alias(E)).
 
@@ -221,14 +233,17 @@ property_tag(E, [], Tag, Props = #{ from := Start }) ->
 
 after_property(E, Props) ->
     {Space, E1} = yaml_space:space(E),
-    after_property_space(E1, Space, Props).
+    after_property_space(E1, Space, Props, yaml_event:coord(E)).
 
 %-----------------------------------------------------------------------
 
-after_property_space(E, {in_line, _, _}, Props) ->
+after_property_space(E, {in_line, _, _}, Props, _) ->
     content_continue(E, Props);
-after_property_space(E, {indent_line, N, _}, Props) ->
-    after_property_continue(E, yaml_event:indent_next(E, N), Props).
+after_property_space(E, {indent_line, N, _}, Props, _) ->
+    after_property_continue(E, yaml_event:indent_next(E, N), Props);
+after_property_space(E, Space, Props, Thru) ->
+    Next = fun (EE) -> after_block(EE, Space) end,
+    empty(E, Props, Thru, Next).
 
 %-----------------------------------------------------------------------
 
@@ -237,7 +252,7 @@ after_property_continue(E, Continue, Props) ->
         {block, N} ->
            after_property_block(E, N, Props) ;
 
-        {implicit_key, more_indented, _} ->
+        _ ->
             throw({E, Continue, Props})
     end.
 
@@ -402,10 +417,9 @@ after_indicator_indent(E, _Space, Indent) ->
 
 explicit_key_empty(E, N, Next) ->
     At = yaml_event:coord(E),
-    Event = {empty, At, At, no_anchor, no_tag},
     Popped = yaml_event:pop(E),
     Pushed = yaml_event:push(Popped, explicit_key, N, At),
-    yaml_event:emit(Event, Pushed, Next).
+    empty(Pushed, At, Next).
 
 %-----------------------------------------------------------------------
 
@@ -433,12 +447,10 @@ explicit_value_empty(E, Next) ->
     case yaml_event:top(E) of
         {explicit_key, _, _} ->
             At = yaml_event:coord_row(E),
-            Event = {empty, At, At, no_anchor, no_tag},
-            yaml_event:emit(Event, E, Next);
+            empty(E, At, Next);
 
         {explicit_value, _, At} ->
-            Event = {empty, At, At, no_anchor, no_tag},
-            yaml_event:emit(Event, E, Next)
+            empty(E, At, Next)
     end.
 
 %-----------------------------------------------------------------------
@@ -534,8 +546,7 @@ sequence_value_not_indented(E, N) ->
     case yaml_implicit:detect(E, block) of
         sequence ->
             {sequence, _, At} = yaml_event:top(E),
-            Event = {empty, At, At, no_anchor, no_tag},
             Next = fun (EE) -> sequence_next(EE, N) end,
-            yaml_event:emit(Event, E, Next)
+            empty(E, At, Next)
     end.
 
