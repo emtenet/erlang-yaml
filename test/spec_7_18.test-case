@@ -30,5 +30,5 @@
 }.
 {empty, {4, 9}, {4, 9}, no_anchor, no_tag}.
 {end_of_mapping, {5, 2}}.
-{end_of_document, {6, 1}}.
+{end_of_document, {5, 2}}.
 {end_of_stream, {6, 1}}.

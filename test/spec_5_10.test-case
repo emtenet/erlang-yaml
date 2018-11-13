@@ -28,6 +28,6 @@ grave-accent: `text
 {error
 , {reserved_indicator, {2, 15}, {2, 16}, {plain, {2, 15}, {2, 20}}}
 }.
-{end_of_mapping, {3, 1}}.
-{end_of_document, {3, 1}}.
+{end_of_mapping, {2, 20}}.
+{end_of_document, {2, 20}}.
 {end_of_stream, {3, 1}}.

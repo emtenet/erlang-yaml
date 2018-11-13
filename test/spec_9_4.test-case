@@ -25,8 +25,8 @@
 , [ {{3, 5}, {3, 7}, <<"20">>} ]
 }.
 {end_of_mapping, {3, 9}}.
-{end_of_document, {5, 1}}.
+{end_of_document, {4, 4}}.
 {start_of_document, {5, 1}}.
 {empty, {5, 4}, {5, 4}, no_anchor, no_tag}.
-{end_of_document, {8, 1}}.
+{end_of_document, {7, 4}}.
 {end_of_stream, {8, 1}}.

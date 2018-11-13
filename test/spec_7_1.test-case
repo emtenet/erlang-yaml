@@ -36,6 +36,6 @@ Reuse anchor: *anchor
 , [ {{4, 1}, {4, 13}, <<"Reuse anchor">>} ]
 }.
 {alias, {4, 15}, {4, 22}, <<"anchor">>}.
-{end_of_mapping, {5, 1}}.
-{end_of_document, {5, 1}}.
+{end_of_mapping, {4, 22}}.
+{end_of_document, {4, 22}}.
 {end_of_stream, {5, 1}}.

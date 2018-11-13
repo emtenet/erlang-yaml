@@ -44,6 +44,6 @@
 }.
 {end_of_mapping, {3, 26}}.
 {end_of_sequence, {3, 28}}.
-{end_of_sequence, {4, 1}}.
-{end_of_document, {4, 1}}.
+{end_of_sequence, {3, 28}}.
+{end_of_document, {3, 28}}.
 {end_of_stream, {4, 1}}.

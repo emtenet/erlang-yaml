@@ -22,6 +22,6 @@ double: "text"
 {double, {2, 9}, {2, 15}, no_anchor, no_tag
 , [ {{2, 10}, {2, 14}, <<"text">>} ]
 }.
-{end_of_mapping, {3, 1}}.
-{end_of_document, {3, 1}}.
+{end_of_mapping, {2, 15}}.
+{end_of_document, {2, 15}}.
 {end_of_stream, {3, 1}}.

@@ -29,7 +29,7 @@ national:
 {plain, {4, 5}, {4, 21}, no_anchor, no_tag
 , [ {{4, 5}, {4, 21}, <<"New York Yankees">>} ]
 }.
-{end_of_sequence, {5, 1}}.
+{end_of_sequence, {4, 21}}.
 {plain, {5, 1}, {5, 9}, no_anchor, no_tag
 , [ {{5, 1}, {5, 9}, <<"national">>} ]
 }.
@@ -43,7 +43,7 @@ national:
 {plain, {8, 5}, {8, 19}, no_anchor, no_tag
 , [ {{8, 5}, {8, 19}, <<"Atlanta Braves">>} ]
 }.
-{end_of_sequence, {9, 1}}.
-{end_of_mapping, {9, 1}}.
-{end_of_document, {9, 1}}.
+{end_of_sequence, {8, 19}}.
+{end_of_mapping, {8, 19}}.
+{end_of_document, {8, 19}}.
 {end_of_stream, {9, 1}}.

@@ -25,7 +25,7 @@
 {error
 , {plain_start_with_indicator, {1, 9}, {1, 10}, {plain, {1, 9}, {1, 15}}}
 }.
-{end_of_mapping, {2, 1}}.
+{end_of_mapping, {1, 15}}.
 {start_of_mapping, {2, 3}, no_anchor, no_tag}.
 {plain, {2, 3}, {2, 7}, no_anchor, no_tag
 , [ {{2, 3}, {2, 7}, <<"]key">>} ]
@@ -39,7 +39,7 @@
 {error
 , {plain_start_with_indicator, {2, 9}, {2, 10}, {plain, {2, 9}, {2, 15}}}
 }.
-{end_of_mapping, {3, 1}}.
+{end_of_mapping, {2, 15}}.
 {start_of_mapping, {3, 3}, no_anchor, no_tag}.
 {plain, {3, 3}, {3, 7}, no_anchor, no_tag
 , [ {{3, 3}, {3, 7}, <<"}key">>} ]
@@ -53,7 +53,7 @@
 {error
 , {plain_start_with_indicator, {3, 9}, {3, 10}, {plain, {3, 9}, {3, 15}}}
 }.
-{end_of_mapping, {4, 1}}.
+{end_of_mapping, {3, 15}}.
 {start_of_mapping, {4, 3}, no_anchor, no_tag}.
 {plain, {4, 3}, {4, 7}, no_anchor, no_tag
 , [ {{4, 3}, {4, 7}, <<"%key">>} ]
@@ -67,9 +67,9 @@
 {error
 , {plain_start_with_indicator, {4, 9}, {4, 10}, {plain, {4, 9}, {4, 15}}}
 }.
-{end_of_mapping, {5, 1}}.
-{end_of_sequence, {5, 1}}.
-{end_of_document, {5, 1}}.
+{end_of_mapping, {4, 15}}.
+{end_of_sequence, {4, 15}}.
+{end_of_document, {4, 15}}.
 {end_of_stream, {5, 1}}.
 
 @@@ errors

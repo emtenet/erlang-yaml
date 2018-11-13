@@ -116,10 +116,10 @@ props_empty(From) ->
 
 space_in_flow(E) ->
     case yaml_space:space(E) of
-        {{in_line, _, _}, E1} ->
+        {{_, in_line, _, _}, E1} ->
             {flow, E1};
 
-        {Space = {indent_line, _, _}, E1} ->
+        {Space = {_, indent_line, _, _}, E1} ->
             case yaml_event:is_indented(E) of
                 true ->
                     {flow, E1};
@@ -280,15 +280,15 @@ property_tag(E, [], Tag, Props = #{ from := Start }) ->
 
 after_property(E, Props) ->
     {Space, E1} = yaml_space:space(E),
-    after_property_space(E1, Space, Props, yaml_event:coord(E)).
+    after_property_space(E1, Props, Space).
 
 %-----------------------------------------------------------------------
 
-after_property_space(E, {in_line, _, _}, Props, Thru) ->
+after_property_space(E, Props, {End, in_line, _, _}) ->
     case yaml_implicit:detect(E, flow) of
         explicit_value ->
             Next = fun after_content/1,
-            empty(E, Props, Thru, Next);
+            empty(E, Props, End, Next);
 
         false ->
             entry_with_props(E, Props)

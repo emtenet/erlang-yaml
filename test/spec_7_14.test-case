@@ -10,6 +10,7 @@ plain
  text, [ nested ],
 single: pair,
 ]
+
 @@@ events
 
 {start_of_stream, {1, 1}}.
@@ -48,4 +49,4 @@ single: pair,
 {end_of_mapping, {7, 13}}.
 {end_of_sequence, {8, 2}}.
 {end_of_document, {8, 2}}.
-{end_of_stream, {8, 2}}.
+{end_of_stream, {9, 1}}.

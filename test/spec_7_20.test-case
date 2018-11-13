@@ -24,5 +24,5 @@
 }.
 {end_of_mapping, {3, 11}}.
 {end_of_sequence, {4, 2}}.
-{end_of_document, {5, 1}}.
+{end_of_document, {4, 2}}.
 {end_of_stream, {5, 1}}.

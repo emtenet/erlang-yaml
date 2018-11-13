@@ -29,7 +29,7 @@
 {plain, {5, 5}, {5, 8}, no_anchor, no_tag
 , [ {{5, 5}, {5, 8}, <<"two">>} ]
 }.
-{end_of_sequence, {6, 1}}.
-{end_of_mapping, {6, 1}}.
-{end_of_document, {6, 1}}.
+{end_of_sequence, {5, 8}}.
+{end_of_mapping, {5, 8}}.
+{end_of_document, {5, 8}}.
 {end_of_stream, {6, 1}}.

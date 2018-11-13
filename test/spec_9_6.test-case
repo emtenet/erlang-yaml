@@ -17,10 +17,10 @@ matches %: 20
 {plain, {1, 1}, {1, 9}, no_anchor, no_tag
 , [ {{1, 1}, {1, 9}, <<"Document">>} ]
 }.
-{end_of_document, {2, 1}}.
+{end_of_document, {1, 9}}.
 {start_of_document, {2, 1}}.
 {empty, {2, 4}, {2, 4}, no_anchor, no_tag}.
-{end_of_document, {5, 1}}.
+{end_of_document, {4, 4}}.
 {start_of_document, {5, 1}}.
 {yaml_directive, {5, 1}, {5, 10}, {1, 2}}.
 {start_of_mapping, {7, 1}, no_anchor, no_tag}.
@@ -30,6 +30,6 @@ matches %: 20
 {plain, {7, 12}, {7, 14}, no_anchor, no_tag
 , [ {{7, 12}, {7, 14}, <<"20">>} ]
 }.
-{end_of_mapping, {8, 1}}.
-{end_of_document, {8, 1}}.
+{end_of_mapping, {7, 14}}.
+{end_of_document, {7, 14}}.
 {end_of_stream, {8, 1}}.

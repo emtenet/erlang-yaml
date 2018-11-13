@@ -21,9 +21,9 @@
   , {{3, 15}, {4, 1}, <<"\n">>}
   ]
 }.
-{end_of_document, {5, 1}}.
+{end_of_document, {4, 4}}.
 {start_of_document, {5, 1}}.
 {yaml_directive, {5, 1}, {5, 10}, {1, 2}}.
 {empty, {6, 4}, {6, 4}, no_anchor, no_tag}.
-{end_of_document, {9, 1}}.
+{end_of_document, {8, 4}}.
 {end_of_stream, {9, 1}}.

@@ -52,6 +52,6 @@
 , [ {{12, 3}, {12, 29}, <<"http://example.com/foo#bar">>} ]
 }.
 {end_of_sequence, {12, 31}}.
-{end_of_sequence, {13, 1}}.
-{end_of_document, {13, 1}}.
+{end_of_sequence, {12, 31}}.
+{end_of_document, {12, 31}}.
 {end_of_stream, {13, 1}}.

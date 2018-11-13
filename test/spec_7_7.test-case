@@ -3,6 +3,7 @@
 @@@ source
 
 'here''s to "quotes"'
+
 @@@ events
 
 {start_of_stream, {1, 1}}.
@@ -14,4 +15,4 @@
   ]
 }.
 {end_of_document, {1, 22}}.
-{end_of_stream, {1, 22}}.
+{end_of_stream, {2, 1}}.

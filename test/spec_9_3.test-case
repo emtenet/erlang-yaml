@@ -20,7 +20,7 @@ document
   , {{2, 1}, {2, 9}, <<"document">>}
   ]
 }.
-{end_of_document, {5, 1}}.
+{end_of_document, {3, 4}}.
 {start_of_document, {6, 1}}.
 {literal, {6, 1}, {8, 1}, no_anchor, no_tag
 , [ {{7, 1}, {7, 36}, <<"%!PS-Adobe-2.0 # Not the first line">>}

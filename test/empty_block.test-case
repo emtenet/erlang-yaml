@@ -32,8 +32,8 @@
 , {tag, {4, 3}, {4, 8}, <<"!!str">>}
 }.
 {empty, {5, 2}, {5, 2}, no_anchor, no_tag}.
-{end_of_sequence, {6, 1}}.
-{end_of_document, {7, 1}}.
+{end_of_sequence, {5, 2}}.
+{end_of_document, {6, 4}}.
 {start_of_document, {7, 1}}.
 {start_of_mapping, {8, 1}, no_anchor, no_tag}.
 {empty, {8, 2}, {8, 2}, no_anchor, no_tag}.
@@ -46,8 +46,8 @@
 {empty, {10, 8}, {10, 8}, no_anchor, no_tag}.
 {empty, {11, 2}, {11, 2}, no_anchor, no_tag}.
 {empty, {11, 2}, {11, 2}, no_anchor, no_tag}.
-{end_of_mapping, {12, 1}}.
-{end_of_document, {13, 1}}.
+{end_of_mapping, {11, 2}}.
+{end_of_document, {12, 4}}.
 {start_of_document, {13, 1}}.
 {start_of_mapping, {14, 1}, no_anchor, no_tag}.
 {empty, {14, 1}, {14, 1}, no_anchor, no_tag}.
@@ -60,6 +60,6 @@
 }.
 {empty, {17, 1}, {17, 1}, no_anchor, no_tag}.
 {empty, {17, 2}, {17, 2}, no_anchor, no_tag}.
-{end_of_mapping, {18, 1}}.
-{end_of_document, {19, 1}}.
+{end_of_mapping, {17, 2}}.
+{end_of_document, {18, 4}}.
 {end_of_stream, {19, 1}}.

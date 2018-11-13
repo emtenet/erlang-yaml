@@ -20,7 +20,7 @@ block mapping:
 {plain, {2, 7}, {2, 12}, no_anchor, no_tag
 , [ {{2, 7}, {2, 12}, <<"value">>} ]
 }.
-{end_of_mapping, {3, 1}}.
-{end_of_mapping, {3, 1}}.
-{end_of_document, {3, 1}}.
+{end_of_mapping, {2, 12}}.
+{end_of_mapping, {2, 12}}.
+{end_of_document, {2, 12}}.
 {end_of_stream, {3, 1}}.

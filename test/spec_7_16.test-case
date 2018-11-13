@@ -28,5 +28,5 @@ implicit: entry,
 {empty, {4, 2}, {4, 2}, no_anchor, no_tag}.
 {empty, {4, 2}, {4, 2}, no_anchor, no_tag}.
 {end_of_mapping, {5, 2}}.
-{end_of_document, {6, 1}}.
+{end_of_document, {5, 2}}.
 {end_of_stream, {6, 1}}.

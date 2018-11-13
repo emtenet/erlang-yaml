@@ -29,6 +29,6 @@
 {empty, {5, 3}, {5, 8}, no_anchor
 , {tag, {5, 3}, {5, 8}, <<"!!str">>}
 }.
-{end_of_sequence, {6, 1}}.
-{end_of_document, {6, 1}}.
+{end_of_sequence, {5, 8}}.
+{end_of_document, {5, 8}}.
 {end_of_stream, {6, 1}}.

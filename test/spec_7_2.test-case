@@ -25,5 +25,5 @@
 , [ {{3, 11}, {3, 14}, <<"bar">>} ]
 }.
 {end_of_mapping, {4, 2}}.
-{end_of_document, {5, 1}}.
+{end_of_document, {4, 2}}.
 {end_of_stream, {5, 1}}.

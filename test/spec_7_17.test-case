@@ -33,5 +33,5 @@ omitted value:,
 , [ {{5, 3}, {5, 14}, <<"omitted key">>} ]
 }.
 {end_of_mapping, {6, 2}}.
-{end_of_document, {7, 1}}.
+{end_of_document, {6, 2}}.
 {end_of_stream, {7, 1}}.

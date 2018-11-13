@@ -41,7 +41,7 @@
 {plain, {6, 4}, {6, 9}, no_anchor, no_tag
 , [ {{6, 4}, {6, 9}, <<"0.278">>} ]
 }.
-{end_of_mapping, {7, 1}}.
-{end_of_mapping, {7, 1}}.
-{end_of_document, {7, 1}}.
+{end_of_mapping, {6, 9}}.
+{end_of_mapping, {6, 9}}.
+{end_of_document, {6, 9}}.
 {end_of_stream, {7, 1}}.

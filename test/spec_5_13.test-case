@@ -53,5 +53,5 @@
   , {{5, 13}, {5, 23}, <<"A">>}
   ]
 }.
-{end_of_document, {6, 1}}.
+{end_of_document, {5, 24}}.
 {end_of_stream, {6, 1}}.

@@ -21,5 +21,5 @@
 {double, {3, 5}, {3, 10}, no_anchor, no_tag
 , [ {{3, 6}, {3, 9}, <<"foo">>} ]
 }.
-{end_of_document, {4, 1}}.
+{end_of_document, {3, 10}}.
 {end_of_stream, {4, 1}}.
