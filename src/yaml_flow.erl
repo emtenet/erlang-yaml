@@ -255,7 +255,7 @@ property_anchor(E, [], Anchor, Props = #{ from := Start }) ->
     {anchor, From, Thru, _} = Anchor,
     Error = {multiple_anchors, From, Thru, {flow, Start, Thru}},
     Next = fun (EE) -> after_property(EE, Props#{ anchor => Anchor }) end,
-    yaml_token:error(Error, E, Next).
+    yaml_event:error(Error, E, Next).
 
 %-----------------------------------------------------------------------
 
@@ -274,7 +274,7 @@ property_tag(E, [], Tag, Props = #{ from := Start }) ->
     {tag, From, Thru, _} = Tag,
     Error = {multiple_tags, From, Thru, {flow, Start, Thru}},
     Next = fun (EE) -> after_property(EE, Props#{ tag => Tag }) end,
-    yaml_token:error(Error, E, Next).
+    yaml_event:error(Error, E, Next).
 
 %-----------------------------------------------------------------------
 
