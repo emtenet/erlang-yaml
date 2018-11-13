@@ -192,6 +192,15 @@ entry_with_empty_props(E, At) ->
 entry_with_props(E, Props) ->
     S = yaml_event:scan(E),
     case yaml_scan:grapheme(S) of
+        $& ->
+            property_anchor(E, Props);
+
+        $! ->
+            property_tag(E, Props);
+
+        $* ->
+            alias(E, Props);
+
         $' ->
             scalar(yaml_single:scalar(E, flow, Props));
 
@@ -231,6 +240,62 @@ entry_with_props(E, Props) ->
 
 %=======================================================================
 
+property_anchor(E, Props) ->
+    {Anchor, Errors, E1} = yaml_anchor:property(E),
+    property_anchor(E1, Errors, Anchor, Props).
+
+%-----------------------------------------------------------------------
+
+property_anchor(E, [Error | Errors], Anchor, Props) ->
+    Next = fun (EE) -> property_anchor(EE, Errors, Anchor, Props) end,
+    yaml_event:error(Error, E, Next);
+property_anchor(E, [], Anchor, Props = #{ anchor := no_anchor }) ->
+    after_property(E, Props#{ anchor => Anchor });
+property_anchor(E, [], Anchor, Props = #{ from := Start }) ->
+    {anchor, From, Thru, _} = Anchor,
+    Error = {multiple_anchors, From, Thru, {flow, Start, Thru}},
+    Next = fun (EE) -> after_property(EE, Props#{ anchor => Anchor }) end,
+    yaml_token:error(Error, E, Next).
+
+%-----------------------------------------------------------------------
+
+property_tag(E, Props) ->
+    {Tag, Errors, E1} = yaml_tag:property(E),
+    property_tag(E1, Errors, Tag, Props).
+
+%-----------------------------------------------------------------------
+
+property_tag(E, [Error | Errors], Tag, Props) ->
+    Next = fun (EE) -> property_tag(EE, Errors, Tag, Props) end,
+    yaml_event:error(Error, E, Next);
+property_tag(E, [], Tag, Props = #{ tag := no_tag }) ->
+    after_property(E, Props#{ tag => Tag });
+property_tag(E, [], Tag, Props = #{ from := Start }) ->
+    {tag, From, Thru, _} = Tag,
+    Error = {multiple_tags, From, Thru, {flow, Start, Thru}},
+    Next = fun (EE) -> after_property(EE, Props#{ tag => Tag }) end,
+    yaml_token:error(Error, E, Next).
+
+%-----------------------------------------------------------------------
+
+after_property(E, Props) ->
+    {Space, E1} = yaml_space:space(E),
+    after_property_space(E1, Space, Props, yaml_event:coord(E)).
+
+%-----------------------------------------------------------------------
+
+after_property_space(E, {in_line, _, _}, Props, Thru) ->
+    case yaml_implicit:detect(E, flow) of
+        explicit_value ->
+            Next = fun after_content/1,
+            empty(E, Props, Thru, Next);
+
+        false ->
+            entry_with_props(E, Props)
+    end.
+
+%=======================================================================
+
 empty(E, At = {_, _}, Next) ->
     Event = {empty, At, At, no_anchor, no_tag},
     yaml_event:emit(Event, E, Next).
@@ -249,6 +314,11 @@ empty_after_indicator(E, {R, C}, Next) ->
     yaml_event:emit(Event, E, Next).
 
 %=======================================================================
+
+alias(E, #{ anchor := no_anchor, tag := no_tag }) ->
+    scalar(yaml_anchor:alias(E)).
+
+%-----------------------------------------------------------------------
 
 scalar({Scalar, Errors, E}) ->
     Next = fun (EE) -> end_of_scaler(EE, Errors) end,
