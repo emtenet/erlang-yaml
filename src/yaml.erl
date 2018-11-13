@@ -4,7 +4,9 @@
 -module(yaml).
 
 -export_type([ coord/0
+             , anchor/0
              , maybe_anchor/0
+             , tag/0
              , maybe_tag/0
              , props/0
              , version/0

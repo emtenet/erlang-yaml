@@ -25,8 +25,8 @@
         , is_indented/3
         ]).
 
--export_type([ state/0
-             , construct/0
+-export_type([ state/1
+             , construct/1
              ]).
 
 -include("yaml_grapheme.hrl").
@@ -47,28 +47,28 @@
         , parts :: list()
         , errors :: list()
         , context :: atom()
-        , construct :: construct()
+        , construct
         , store :: map()
         }).
 
--opaque state() :: #token{}.
+-opaque state(Token) :: #token{construct :: construct(Token)}.
 
--type construct() :: fun((list(), map()) -> {yaml_event:event(), list()}).
+-type construct(Token) :: fun((list(), map()) -> {Token, list()}).
 
 %=======================================================================
 % START
 %=======================================================================
 
--spec start(yaml_event:state(), atom(), construct()) ->
-    {state(), yaml_scan:state()}.
+-spec start(yaml_event:state(), atom(), construct(Token)) ->
+    {state(Token), yaml_scan:state()}.
 
 start(Event, Context, Build) ->
     start(Event, Context, Build, #{}).
 
 %=======================================================================
 
--spec start(yaml_event:state(), atom(), construct(), map()) ->
-    {state(), yaml_scan:state()}.
+-spec start(yaml_event:state(), atom(), construct(Token), map()) ->
+    {state(Token), yaml_scan:state()}.
 
 start(Event, Context, Construct, Store)
         when is_atom(Context) andalso
@@ -98,16 +98,16 @@ start_from(Scan, _) ->
 % FINISH
 %=======================================================================
 
--spec finish(state(), yaml_scan:state()) ->
-    {yaml_event:event(), list(), yaml_event:state()}.
+-spec finish(state(Token), yaml_scan:state()) ->
+    {Token, list(), yaml_event:state()}.
 
 finish(T = #token{}, End) ->
     finish(keep(T, End)).
 
 %=======================================================================
 
--spec finish(state()) ->
-    {yaml_event:event(), list(), yaml_event:state()}.
+-spec finish(state(Token)) ->
+    {Token, list(), yaml_event:state()}.
 
 finish(T = #token{}) ->
     #token
@@ -137,14 +137,14 @@ error_context([{E, From, Thru} | Es], Acc, Context) ->
 % STORE
 %=======================================================================
 
--spec set(state(), any(), any()) -> state().
+-spec set(state(Token), _, _) -> state(Token).
 
 set(SS = #token{store = Store = #{}}, Key, Value) ->
     SS#token{store = Store#{ Key => Value }}.
 
 %=======================================================================
 
--spec get(state(), any()) -> {ok, any()} | false.
+-spec get(state(_), _) -> {ok, _} | false.
 
 get(#token{store = Store}, Key) ->
     case Store of
@@ -159,7 +159,7 @@ get(#token{store = Store}, Key) ->
 % ERROR
 %=======================================================================
 
--spec error_range(state(), any(), From, Thru) -> state()
+-spec error_range(state(Token), _, From, Thru) -> state(Token)
     when
         From :: yaml:coord() | yaml_scan:state(),
         Thru :: yaml:coord() | yaml_scan:state().
@@ -175,7 +175,7 @@ error_range(T, E, From, Thru) ->
 % CONSUME
 %=======================================================================
 
--spec keep(state(), yaml_scan:state()) -> state().
+-spec keep(state(Token), yaml_scan:state()) -> state(Token).
 
 keep(T = #token{scan = End}, End) ->
     T;
@@ -185,7 +185,7 @@ keep(T = #token{parts = Ps}, End) ->
 
 %=======================================================================
 
--spec keep(state(), any(), yaml_scan:state()) -> state().
+-spec keep(state(Token), _, yaml_scan:state()) -> state(Token).
 
 keep(T = #token{scan = Start, parts = Ps}, Const, End) ->
     From = yaml_scan:coord(Start),
@@ -195,14 +195,14 @@ keep(T = #token{scan = Start, parts = Ps}, Const, End) ->
 
 %=======================================================================
 
--spec skip(state(), yaml_scan:state()) -> state().
+-spec skip(state(Token), yaml_scan:state()) -> state(Token).
 
 skip(T = #token{}, End) ->
     T#token{scan = End}.
 
 %=======================================================================
 
--spec error(state(), any(), yaml_scan:state()) -> state().
+-spec error(state(Token), _, yaml_scan:state()) -> state(Token).
 
 error(T = #token{scan = Start, errors = Es}, Error, End) ->
     From = yaml_scan:coord(Start),
@@ -214,7 +214,7 @@ error(T = #token{scan = Start, errors = Es}, Error, End) ->
 % INFO
 %=======================================================================
 
--spec consumed(state(), yaml_scan:state()) ->
+-spec consumed(state(_), yaml_scan:state()) ->
         {yaml:coord(), yaml:coord(), binary()}.
 
 consumed(#token{scan = Start}, End) ->
@@ -225,21 +225,21 @@ consumed(#token{scan = Start}, End) ->
 
 %=======================================================================
 
--spec indent_to_column(state(), pos_integer()) -> pos_integer().
+-spec indent_to_column(state(_), pos_integer()) -> pos_integer().
 
 indent_to_column(#token{event = Event}, By) ->
     yaml_event:indent_to_column(Event, By).
 
 %=======================================================================
 
--spec is_indented(state(), yaml_scan:state()) -> boolean().
+-spec is_indented(state(_), yaml_scan:state()) -> boolean().
 
 is_indented(#token{event = Event}, Scan) ->
     yaml_event:is_indented(Event, Scan).
 
 %=======================================================================
 
--spec is_indented(state(), yaml_scan:state(), pos_integer()) -> boolean().
+-spec is_indented(state(_), yaml_scan:state(), pos_integer()) -> boolean().
 
 is_indented(#token{event = Event}, Scan, By) ->
     yaml_event:is_indented(Event, Scan, By).
