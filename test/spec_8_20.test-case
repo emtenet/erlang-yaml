@@ -1,0 +1,37 @@
+@@@ Example 8.20 Block Node Types
+
+@@@ source
+
+-
+  "flow in block"
+- >
+ Block scalar
+- !!map # Block collection
+  foo : bar
+
+@@@ events
+
+{start_of_stream, {1, 1}}.
+{start_of_document, {1, 1}}.
+{start_of_sequence, {1, 1}, no_anchor, no_tag}.
+{double, {2, 3}, {2, 18}, no_anchor, no_tag
+, [ {{2, 4}, {2, 17}, <<"flow in block">>} ]
+}.
+{folded, {3, 3}, {5, 1}, no_anchor, no_tag
+, [ {{4, 2}, {4, 14}, <<"Block scalar">>}
+  , {{4, 14}, {5, 1}, <<"\n">>}
+  ]
+}.
+{start_of_mapping, {5, 3}, no_anchor
+, {tag, {5, 3}, {5, 8}, <<"!!map">>}
+}.
+{plain, {6, 3}, {6, 6}, no_anchor, no_tag
+, [ {{6, 3}, {6, 6}, <<"foo">>} ]
+}.
+{plain, {6, 9}, {6, 12}, no_anchor, no_tag
+, [ {{6, 9}, {6, 12}, <<"bar">>} ]
+}.
+{end_of_mapping, {6, 12}}.
+{end_of_sequence, {6, 12}}.
+{end_of_document, {6, 12}}.
+{end_of_stream, {7, 1}}.

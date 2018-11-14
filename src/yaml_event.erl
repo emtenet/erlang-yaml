@@ -291,8 +291,14 @@ top(#event{stack = [Top | _]}) ->
 
 %=======================================================================
 
--spec top(state(), atom(), flow, yaml:coord()) -> state().
+-spec top(state(), atom(), integer() | flow, yaml:coord()) -> state().
 
+top(E = #event{indent = I, stack = [{_, I, _} | Pop]}, Push, N, At = {_, _})
+        when is_atom(Push) andalso
+             is_integer(N) andalso
+             N >= I ->
+    Stack = [{Push, N, At} | Pop],
+    E#event{indent = N, stack = Stack};
 top(E = #event{stack = [{_, flow, _} | Pop]}, Push, N = flow, At = {_, _})
         when is_atom(Push) ->
     Stack = [{Push, N, At} | Pop],
