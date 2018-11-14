@@ -17,12 +17,20 @@
 
 -spec document(yaml_event:state(), yaml_space:space()) -> yaml_event:emit().
 
-document(E, Space = {_, in_line, N, _}) ->
-    detect_block(E, Space, 3 + N);
+document(E, Space = {_, in_line, M, _}) ->
+    detect_block(E, Space, 3 + M);
 document(E, Space = {_, indent_line, N, _}) ->
     detect_block(E, Space, N).
 
 %=======================================================================
+
+detect_block(E, Space = {_, in_line, M, _}) ->
+    {_, N, _} = yaml_event:top(E),
+    detect_block(E, Space, N + 1 + M);
+detect_block(E, Space = {_, indent_line, N, _}) ->
+    detect_block(E, Space, N).
+
+%-----------------------------------------------------------------------
 
 detect_block(E, Space, N) ->
     case yaml_implicit:detect(E, block) of
@@ -37,26 +45,6 @@ detect_block(E, Space, N) ->
 
         sequence ->
             sequence_first(E, N);
-
-        false ->
-            content_block(E)
-    end.
-
-%-----------------------------------------------------------------------
-
-detect_compact_block(E, M) ->
-    case yaml_implicit:detect(E, block) of
-        explicit_key ->
-            {_, N, _} = yaml_event:top(E),
-            explicit_key_first(E, N + 1 + M);
-
-        implicit_key ->
-            {_, N, _} = yaml_event:top(E),
-            implicit_key_first(E, N + 1 + M);
-
-        sequence ->
-            {_, N, _} = yaml_event:top(E),
-            sequence_first(E, N + 1 + M);
 
         false ->
             content_block(E)
@@ -399,8 +387,8 @@ push_indicator(E, Indicator, Block, N) ->
 
 %-----------------------------------------------------------------------
 
-after_indicator(E, {_, in_line, M, _}) ->
-    detect_compact_block(E, M);
+after_indicator(E, Space = {_, in_line, _, _}) ->
+    detect_block(E, Space);
 after_indicator(E, Space = {_, indent_line, N, _}) ->
     Indent = yaml_event:indent_after_indicator(E, N),
     after_indicator_indent(E, Space, Indent);
@@ -412,8 +400,8 @@ after_indicator(E, Space = {End, end_of, _, _}) ->
 
 after_indicator_indent(E, Space = {End, _, _, _}, Indent) ->
     case Indent of
-        {more_indented, N} ->
-            detect_block(E, Space, N);
+        {more_indented, _} ->
+            detect_block(E, Space);
 
         {Block, not_indented, N} ->
             case yaml_implicit:detect(E, block) of
