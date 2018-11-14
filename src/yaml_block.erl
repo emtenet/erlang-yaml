@@ -232,24 +232,24 @@ after_scalar(E, [Error | Errors]) ->
     Next = fun (EE) -> after_scalar(EE, Errors) end,
     yaml_event:error(Error, E, Next);
 after_scalar(E, []) ->
-    after_content(E).
+    after_flow(E).
 
 %=======================================================================
 
 -spec flow_did_end(yaml_event:state()) -> yaml_event:emit().
 
 flow_did_end(E) ->
-    after_content(E).
+    after_flow(E).
 
 %=======================================================================
 
-after_content(E) ->
+after_flow(E) ->
     {Space, E1} = yaml_space:space(E),
-    after_content(E1, Space).
+    after_flow(E1, Space).
 
 %-----------------------------------------------------------------------
 
-after_content(E, {_, in_line, _, _}) ->
+after_flow(E, {_, in_line, _, _}) ->
     case yaml_event:top(E) of
         {implicit_key, _, _} ->
             after_implicit_key(E);
@@ -257,47 +257,8 @@ after_content(E, {_, in_line, _, _}) ->
         _ ->
             throw({not_implemented, space_trailing})
     end;
-after_content(E, Space) ->
+after_flow(E, Space) ->
     after_block(E, Space).
-
-%=======================================================================
-
-push_indicator(E, Indicator, Block, N) ->
-    S = yaml_event:scan(E),
-    Indicator = yaml_scan:grapheme(S),
-    Scan = yaml_scan:next(S),
-    After = yaml_scan:coord(Scan),
-    {Space, E1} = yaml_space:space(yaml_event:scan_to(E, Scan)),
-    after_indicator(yaml_event:push(E1, Block, N, After), Space).
-
-%-----------------------------------------------------------------------
-
-after_indicator(E, Space = {_, in_line, _, _}) ->
-    detect_block(E, Space);
-after_indicator(E, Space = {_, indent_line, N, _}) ->
-    Indent = yaml_event:indent_after_indicator(E, N),
-    after_indicator_indent(E, Space, Indent);
-after_indicator(E, Space = {End, end_of, _, _}) ->
-    Next = fun (EE) -> after_block(EE, Space) end,
-    empty(E, End, Next).
-
-%-----------------------------------------------------------------------
-
-after_indicator_indent(E, Space = {End, _, _, _}, Indent) ->
-    case Indent of
-        {more_indented, _} ->
-            detect_block(E, Space);
-
-        {Block, not_indented, N} ->
-            case yaml_implicit:detect(E, block) of
-                sequence when Block =/= sequence ->
-                    sequence_first(E, N);
-
-                _ ->
-                    Next = fun (EE) -> after_block(EE, Space) end,
-                    empty(E, End, Next)
-            end
-    end.
 
 %=======================================================================
 
@@ -393,6 +354,45 @@ sequence_first(E, N) ->
 
 sequence_next(E, N) ->
     push_indicator(yaml_event:pop(E), $-, sequence, N).
+
+%=======================================================================
+
+push_indicator(E, Indicator, Block, N) ->
+    S = yaml_event:scan(E),
+    Indicator = yaml_scan:grapheme(S),
+    Scan = yaml_scan:next(S),
+    After = yaml_scan:coord(Scan),
+    {Space, E1} = yaml_space:space(yaml_event:scan_to(E, Scan)),
+    after_indicator(yaml_event:push(E1, Block, N, After), Space).
+
+%-----------------------------------------------------------------------
+
+after_indicator(E, Space = {_, in_line, _, _}) ->
+    detect_block(E, Space);
+after_indicator(E, Space = {_, indent_line, N, _}) ->
+    Indent = yaml_event:indent_after_indicator(E, N),
+    after_indicator_indent(E, Space, Indent);
+after_indicator(E, Space = {End, end_of, _, _}) ->
+    Next = fun (EE) -> after_block(EE, Space) end,
+    empty(E, End, Next).
+
+%-----------------------------------------------------------------------
+
+after_indicator_indent(E, Space = {End, _, _, _}, Indent) ->
+    case Indent of
+        {more_indented, _} ->
+            detect_block(E, Space);
+
+        {Block, not_indented, N} ->
+            case yaml_implicit:detect(E, block) of
+                sequence when Block =/= sequence ->
+                    sequence_first(E, N);
+
+                _ ->
+                    Next = fun (EE) -> after_block(EE, Space) end,
+                    empty(E, End, Next)
+            end
+    end.
 
 %=======================================================================
 
