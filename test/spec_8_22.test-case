@@ -1,0 +1,49 @@
+@@@ Example 8.22 Block Collection Nodes
+
+@@@ source
+
+sequence: !!seq
+- entry
+- !!seq
+ - nested
+mapping: !!map
+ foo: bar
+
+@@@ events
+
+{start_of_stream, {1, 1}}.
+{start_of_document, {1, 1}}.
+{start_of_mapping, {1, 1}, no_anchor, no_tag}.
+{plain, {1, 1}, {1, 9}, no_anchor, no_tag
+, [ {{1, 1}, {1, 9}, <<"sequence">>} ]
+}.
+{start_of_sequence, {1, 11}, no_anchor
+, {tag, {1, 11}, {1, 16}, <<"!!seq">>}
+}.
+{plain, {2, 3}, {2, 8}, no_anchor, no_tag
+, [ {{2, 3}, {2, 8}, <<"entry">>} ]
+}.
+{start_of_sequence, {3, 3}, no_anchor
+, {tag, {3, 3}, {3, 8}, <<"!!seq">>}
+}.
+{plain, {4, 4}, {4, 10}, no_anchor, no_tag
+, [ {{4, 4}, {4, 10}, <<"nested">>} ]
+}.
+{end_of_sequence, {4, 10}}.
+{end_of_sequence, {4, 10}}.
+{plain, {5, 1}, {5, 8}, no_anchor, no_tag
+, [ {{5, 1}, {5, 8}, <<"mapping">>} ]
+}.
+{start_of_mapping, {5, 10}, no_anchor
+, {tag, {5, 10}, {5, 15}, <<"!!map">>}
+}.
+{plain, {6, 2}, {6, 5}, no_anchor, no_tag
+, [ {{6, 2}, {6, 5}, <<"foo">>} ]
+}.
+{plain, {6, 7}, {6, 10}, no_anchor, no_tag
+, [ {{6, 7}, {6, 10}, <<"bar">>} ]
+}.
+{end_of_mapping, {6, 10}}.
+{end_of_mapping, {6, 10}}.
+{end_of_document, {6, 10}}.
+{end_of_stream, {7, 1}}.

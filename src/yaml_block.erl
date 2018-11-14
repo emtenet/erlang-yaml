@@ -180,14 +180,25 @@ after_property_space(E, Props, Space = {End, end_of, _, _}) ->
 
 %-----------------------------------------------------------------------
 
-after_property_continue(E, Props, Space = {End, _, N, _}, Continue) ->
+after_property_continue(E, Props, Space = {_, _, N, _}, Continue) ->
     case Continue of
         pop ->
-            Next = fun (EE) -> after_flow(EE, Space) end,
-            empty(E, Props, End, Next);
+            after_property_empty(E, Props, Space);
+
+        {sequence, same_indented, _} ->
+            after_property_empty(E, Props, Space);
+
+        {_, same_indented, _} ->
+            case yaml_implicit:detect(E, block) of
+                sequence ->
+                    sequence_first_not_indented(E, Props, N);
+
+                _ ->
+                    after_property_empty(E, Props, Space)
+            end;
 
         {block, _} ->
-           after_property_block(E, N, Props) ;
+            block_detect(E, Props, Space, N);
 
         {block, more_indented, _} ->
             block_detect(E, Props, Space, N);
@@ -198,11 +209,9 @@ after_property_continue(E, Props, Space = {End, _, N, _}, Continue) ->
 
 %-----------------------------------------------------------------------
 
-after_property_block(E, N, Props) ->
-    case yaml_implicit:detect(E, block) of
-        explicit_key ->
-            explicit_key_first(E, Props, N)
-    end.
+after_property_empty(E, Props, Space = {End, _, _, _}) ->
+    Next = fun (EE) -> after_flow(EE, Space) end,
+    empty(E, Props, End, Next).
 
 %=======================================================================
 
@@ -368,6 +377,17 @@ sequence_first(E, Props, N) ->
 
 %-----------------------------------------------------------------------
 
+sequence_first_not_indented(E, N) ->
+    {E1, Props} = block_start_prepare_not_indented(E),
+    sequence_first(E1, Props, N).
+
+%-----------------------------------------------------------------------
+
+sequence_first_not_indented(E, Props, N) ->
+    sequence_first(E, Props, N).
+
+%-----------------------------------------------------------------------
+
 sequence_next(E, N) ->
     scan_indicator(E, $-, sequence, N).
 
@@ -401,22 +421,29 @@ after_indicator(E, Space = {End, end_of, _, _}) ->
 
 %-----------------------------------------------------------------------
 
-after_indicator_indent(E, Space = {End, _, _, _}, Indent) ->
+after_indicator_indent(E, Space, Indent) ->
     case Indent of
         {more_indented, _} ->
             block(E, Space);
 
-        {Block, not_indented, N} ->
+        {sequence, not_indented, _} ->
+            after_indicator_empty(E, Space);
+
+        {_, not_indented, N} ->
             case yaml_implicit:detect(E, block) of
-                sequence when Block =/= sequence ->
-                    {E1, Props} = block_start_prepare_not_indented(E),
-                    sequence_first(E1, Props, N);
+                sequence ->
+                    sequence_first_not_indented(E, N);
 
                 _ ->
-                    Next = fun (EE) -> after_block(EE, Space) end,
-                    empty(E, End, Next)
+                    after_indicator_empty(E, Space)
             end
     end.
+
+%-----------------------------------------------------------------------
+
+after_indicator_empty(E, Space = {End, _, _, _}) ->
+    Next = fun (EE) -> after_block(EE, Space) end,
+    empty(E, End, Next).
 
 %=======================================================================
 
@@ -455,7 +482,7 @@ after_block_continue(E, Space, Continue) ->
         {sequence, N} ->
             after_block_sequence(E, N);
 
-        {sequence, not_indented, N} ->
+        {sequence, pair_indented, N} ->
             after_block_sequence_or_pop(E, Space, N)
     end.
 

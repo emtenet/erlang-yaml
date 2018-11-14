@@ -192,14 +192,18 @@ indent_after_indicator(E = #event{}, N) ->
 -spec indent_next(state(), integer()) ->
     pop |
     {atom(), integer()} |
-    {atom(), not_indented, integer()} |
+    {atom(), same_indented, integer()} |
+    {atom(), pair_indented, integer()} |
     {atom(), less_indented, integer()} |
     {atom(), more_indented, integer()}.
 
 indent_next(E = #event{}, N) ->
     case E#event.stack of
+        [{block, J, _}, {A, I, _} | _] when I =:= N andalso J =:= N + 1 ->
+            {A, same_indented, I};
+
         [{A, I, _}, {_, I, _} | _] when N =:= I ->
-            {A, not_indented, I};
+            {A, pair_indented, I};
 
         [{A, I, _} | _] when N =:= I ->
             {A, I};
@@ -293,6 +297,12 @@ top(#event{stack = [Top | _]}) ->
 
 -spec top(state(), atom(), integer() | flow, yaml:coord()) -> state().
 
+top(E = #event{indent = I, stack = [{block, I, _} | Pop = [{_, N, _} | _]]},
+    sequence, N, At = {_, _})
+        when is_integer(N) andalso
+             N =:= I - 1 ->
+    Stack = [{sequence, N, At} | Pop],
+    E#event{indent = N, stack = Stack};
 top(E = #event{indent = I, stack = [{_, I, _} | Pop]}, Push, N, At = {_, _})
         when is_atom(Push) andalso
              is_integer(N) andalso
