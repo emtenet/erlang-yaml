@@ -23,7 +23,7 @@ stream(E0) ->
             directive_start(E1, At);
 
         {Space = {_, indent_line, 0, 0}, E1} ->
-            block_or_directive(E1, Space);
+            may_start_document(E1, Space);
 
         {{_, end_of, stream, _}, E1} ->
             yaml_event:stream_should_end(E1)
@@ -44,7 +44,7 @@ start_of_document(E, At, Next) ->
 
 %-----------------------------------------------------------------------
 
-block_or_directive(E, Space) ->
+may_start_document(E, Space) ->
     case yaml_event:grapheme(E) of
         ?BOM ->
             stream(yaml_event:scan_next(E));
@@ -83,8 +83,22 @@ directive_emit(E, [], Directive) ->
 
 directive_next(E) ->
     case yaml_space:space(E) of
+        {Space = {_, indent_line, 0, 0}, E1} ->
+            directive_next_or_block(E1, Space);
+
         {{_, end_of, directives, _}, E1} ->
             directive_end(E1)
+    end.
+
+%-----------------------------------------------------------------------
+
+directive_next_or_block(E, Space) ->
+    case yaml_event:grapheme(E) of
+        $% ->
+            directive(E);
+
+        _ ->
+            yaml_block:document(E, Space)
     end.
 
 %-----------------------------------------------------------------------
@@ -112,7 +126,7 @@ document_suffix(E) ->
             document_did_end(E1, End, Next);
 
         {Space = {End, indent_line, 0, 0}, E1} ->
-            Next = fun (EE) -> block_or_directive(EE, Space) end,
+            Next = fun (EE) -> may_start_document(EE, Space) end,
             document_did_end(E1, End, Next);
 
         {{End, end_of, document, _}, E1} ->
