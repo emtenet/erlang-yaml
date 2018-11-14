@@ -270,6 +270,9 @@ tag_expecting_handle(T, White) ->
 
 tag_handle(T, S) ->
     case yaml_scan:grapheme(S) of
+        G when ?IS_WHITE(G) ->
+            tag_handle_space(yaml_token:keep(T, S), S, yaml_scan:next(S));
+
         $! ->
             tag_handle_end(T, yaml_scan:next(S));
 
