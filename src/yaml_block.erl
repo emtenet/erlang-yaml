@@ -100,25 +100,6 @@ content_continue(E, Props) ->
 
 %=======================================================================
 
-after_content(E) ->
-    {Space, E1} = yaml_space:space(E),
-    after_content(E1, Space).
-
-%-----------------------------------------------------------------------
-
-after_content(E, {_, in_line, _, _}) ->
-    case yaml_event:top(E) of
-        {implicit_key, _, _} ->
-            after_implicit_key(E);
-
-        _ ->
-            throw({not_implemented, space_trailing})
-    end;
-after_content(E, Space) ->
-    after_block(E, Space).
-
-%=======================================================================
-
 -spec flow_did_end(yaml_event:state()) -> yaml_event:emit().
 
 flow_did_end(E) ->
@@ -174,6 +155,25 @@ after_scalar(E, [Error | Errors]) ->
     yaml_event:error(Error, E, Next);
 after_scalar(E, []) ->
     after_content(E).
+
+%=======================================================================
+
+after_content(E) ->
+    {Space, E1} = yaml_space:space(E),
+    after_content(E1, Space).
+
+%-----------------------------------------------------------------------
+
+after_content(E, {_, in_line, _, _}) ->
+    case yaml_event:top(E) of
+        {implicit_key, _, _} ->
+            after_implicit_key(E);
+
+        _ ->
+            throw({not_implemented, space_trailing})
+    end;
+after_content(E, Space) ->
+    after_block(E, Space).
 
 %=======================================================================
 
@@ -259,121 +259,6 @@ after_property_block(E, N, Props) ->
         explicit_key ->
             explicit_key_first(yaml_event:pop(E), N, Props)
     end.
-
-%=======================================================================
-
-after_block(E, Space) ->
-    case yaml_event:top(E) of
-        {document, _, _} ->
-            yaml_document:block_did_end(E, Space);
-
-        {block, _, _} ->
-            after_block(yaml_event:pop(E), Space);
-
-        _ ->
-            after_block_space(E, Space)
-    end.
-
-%-----------------------------------------------------------------------
-
-after_block_space(E, Space = {_, end_of, _, _}) ->
-    after_block_pop(E, Space);
-after_block_space(E, Space = {_, indent_line, N, _}) ->
-    after_block_continue(E, Space, yaml_event:indent_next(E, N)).
-
-%-----------------------------------------------------------------------
-
-after_block_continue(E, Space, Continue) ->
-    case Continue of
-        pop ->
-            after_block_pop(E, Space);
-
-        {explicit_key, N} ->
-            after_block_explicit_key(E, Space, N);
-
-        {explicit_value, N} ->
-            after_block_mapping(E, N);
-
-        {implicit_value, N} ->
-            after_block_mapping(E, N);
-
-        {sequence, N} ->
-            after_block_sequence(E, N);
-
-        {sequence, not_indented, N} ->
-            after_block_sequence_or_pop(E, Space, N)
-    end.
-
-%-----------------------------------------------------------------------
-
-after_block_explicit_key(E, {End, _, _, _}, N) ->
-    case yaml_implicit:detect(E, block) of
-        explicit_key ->
-            Next = fun (EE) -> explicit_key_next(EE, N) end,
-            empty(E, End, Next);
-
-        explicit_value ->
-            explicit_value_next(E, N)
-    end.
-
-%-----------------------------------------------------------------------
-
-after_block_mapping(E, N) ->
-    case yaml_implicit:detect(E, block) of
-        explicit_value ->
-            At = yaml_event:coord(E),
-            Next = fun (EE) -> explicit_value_next(EE, N) end,
-            empty(E, At, Next);
-
-        implicit_key ->
-            implicit_key_next(E, N)
-    end.
-
-%-----------------------------------------------------------------------
-
-after_block_sequence(E, N) ->
-    case yaml_implicit:detect(E, block) of
-        sequence ->
-            sequence_next(E, N)
-    end.
-
-%-----------------------------------------------------------------------
-
-after_block_sequence_or_pop(E, Space, N) ->
-    case yaml_implicit:detect(E, block) of
-        sequence ->
-            sequence_next(E, N);
-
-        _ ->
-            after_block_pop(E, Space)
-    end.
-
-%-----------------------------------------------------------------------
-
-after_block_pop(E, Space = {End, _, _, _}) ->
-    case yaml_event:top(E) of
-        {explicit_key, _, _} ->
-            Next = fun (EE) ->
-                after_block_pop_end_of(EE, Space, end_of_mapping)
-            end,
-            empty(E, End, Next);
-
-        {explicit_value, _, _} ->
-            after_block_pop_end_of(E, Space, end_of_mapping);
-
-        {implicit_value, _, _} ->
-            after_block_pop_end_of(E, Space, end_of_mapping);
-
-        {sequence, _, _} ->
-            after_block_pop_end_of(E, Space, end_of_sequence)
-    end.
-
-%-----------------------------------------------------------------------
-
-after_block_pop_end_of(E, Space = {End, _, _, _}, EndOf) ->
-    Next = fun (EE) -> after_block(EE, Space) end,
-    Event = {EndOf, End},
-    yaml_event:emit(Event, yaml_event:pop(E), Next).
 
 %=======================================================================
 
@@ -508,4 +393,119 @@ sequence_first(E, N) ->
 
 sequence_next(E, N) ->
     push_indicator(yaml_event:pop(E), $-, sequence, N).
+
+%=======================================================================
+
+after_block(E, Space) ->
+    case yaml_event:top(E) of
+        {document, _, _} ->
+            yaml_document:block_did_end(E, Space);
+
+        {block, _, _} ->
+            after_block(yaml_event:pop(E), Space);
+
+        _ ->
+            after_block_space(E, Space)
+    end.
+
+%-----------------------------------------------------------------------
+
+after_block_space(E, Space = {_, end_of, _, _}) ->
+    after_block_pop(E, Space);
+after_block_space(E, Space = {_, indent_line, N, _}) ->
+    after_block_continue(E, Space, yaml_event:indent_next(E, N)).
+
+%-----------------------------------------------------------------------
+
+after_block_continue(E, Space, Continue) ->
+    case Continue of
+        pop ->
+            after_block_pop(E, Space);
+
+        {explicit_key, N} ->
+            after_block_explicit_key(E, Space, N);
+
+        {explicit_value, N} ->
+            after_block_mapping(E, N);
+
+        {implicit_value, N} ->
+            after_block_mapping(E, N);
+
+        {sequence, N} ->
+            after_block_sequence(E, N);
+
+        {sequence, not_indented, N} ->
+            after_block_sequence_or_pop(E, Space, N)
+    end.
+
+%-----------------------------------------------------------------------
+
+after_block_explicit_key(E, {End, _, _, _}, N) ->
+    case yaml_implicit:detect(E, block) of
+        explicit_key ->
+            Next = fun (EE) -> explicit_key_next(EE, N) end,
+            empty(E, End, Next);
+
+        explicit_value ->
+            explicit_value_next(E, N)
+    end.
+
+%-----------------------------------------------------------------------
+
+after_block_mapping(E, N) ->
+    case yaml_implicit:detect(E, block) of
+        explicit_value ->
+            At = yaml_event:coord(E),
+            Next = fun (EE) -> explicit_value_next(EE, N) end,
+            empty(E, At, Next);
+
+        implicit_key ->
+            implicit_key_next(E, N)
+    end.
+
+%-----------------------------------------------------------------------
+
+after_block_sequence(E, N) ->
+    case yaml_implicit:detect(E, block) of
+        sequence ->
+            sequence_next(E, N)
+    end.
+
+%-----------------------------------------------------------------------
+
+after_block_sequence_or_pop(E, Space, N) ->
+    case yaml_implicit:detect(E, block) of
+        sequence ->
+            sequence_next(E, N);
+
+        _ ->
+            after_block_pop(E, Space)
+    end.
+
+%-----------------------------------------------------------------------
+
+after_block_pop(E, Space = {End, _, _, _}) ->
+    case yaml_event:top(E) of
+        {explicit_key, _, _} ->
+            Next = fun (EE) ->
+                after_block_pop_end_of(EE, Space, end_of_mapping)
+            end,
+            empty(E, End, Next);
+
+        {explicit_value, _, _} ->
+            after_block_pop_end_of(E, Space, end_of_mapping);
+
+        {implicit_value, _, _} ->
+            after_block_pop_end_of(E, Space, end_of_mapping);
+
+        {sequence, _, _} ->
+            after_block_pop_end_of(E, Space, end_of_sequence)
+    end.
+
+%-----------------------------------------------------------------------
+
+after_block_pop_end_of(E, Space = {End, _, _, _}, EndOf) ->
+    Next = fun (EE) -> after_block(EE, Space) end,
+    Event = {EndOf, End},
+    yaml_event:emit(Event, yaml_event:pop(E), Next).
 
