@@ -131,7 +131,7 @@ yaml_space(T, White, S) ->
             yaml_expecting_version(T, White);
 
         G when ?IS_DIGIT(G) ->
-            yaml_dot(T, G - $0, yaml_scan:next(S));
+            yaml_dot(yaml_token:skip(T, S), G - $0, yaml_scan:next(S));
 
         G when ?IS_PRINTABLE(G) ->
             yaml_unknown_version(yaml_token:skip(T, S), yaml_scan:next(S))
