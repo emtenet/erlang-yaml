@@ -18,7 +18,7 @@ property(E) ->
     {T, S} = yaml_token:start(E, tag, Construct, #{}),
     $! = yaml_scan:grapheme(S),
     Z = yaml_scan:next(S),
-    property_start(T, Z).
+    property_handle(T, Z).
 
 %=======================================================================
 
@@ -31,10 +31,19 @@ property_construct([{_, _, Name}], #{ from := From, thru := Thru }) ->
 
 %=======================================================================
 
-property_start(T, S) ->
+property_handle(T, S) ->
     case yaml_scan:grapheme(S) of
         $! ->
-            property_shorthand_suffix(T, yaml_scan:next(S))
+            property_shorthand_suffix(T, yaml_scan:next(S));
+
+        G when ?IS_FLOW_INDICATOR(G) ->
+            yaml_token:finish(T, S);
+
+        G when ?IS_WORD_CHAR(G) ->
+            property_handle(T, yaml_scan:next(S));
+
+        _ ->
+            property_finish(T, S)
     end.
 
 %-----------------------------------------------------------------------
