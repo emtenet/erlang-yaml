@@ -175,7 +175,7 @@ after_property_space(E, Props, Space = {_, indent_line, N, _}) ->
     Continue = yaml_event:indent_next(E, N),
     after_property_continue(E, Props, Space, Continue);
 after_property_space(E, Props, Space = {End, end_of, _, _}) ->
-    Next = fun (EE) -> after_block(EE, Space) end,
+    Next = fun (EE) -> after_flow(EE, Space) end,
     empty(E, Props, End, Next).
 
 %-----------------------------------------------------------------------
@@ -183,7 +183,7 @@ after_property_space(E, Props, Space = {End, end_of, _, _}) ->
 after_property_continue(E, Props, Space = {End, _, N, _}, Continue) ->
     case Continue of
         pop ->
-            Next = fun (EE) -> after_block(EE, Space) end,
+            Next = fun (EE) -> after_flow(EE, Space) end,
             empty(E, Props, End, Next);
 
         {block, _} ->
@@ -265,13 +265,18 @@ flow_did_end(E) ->
 %=======================================================================
 
 after_flow(E) ->
+    {Space, E1} = yaml_space:space(E),
+    after_flow(E1, Space).
+
+%-----------------------------------------------------------------------
+
+after_flow(E, Space) ->
     case yaml_event:top(E) of
         {block, _, _} ->
-            after_flow(yaml_event:pop(E));
+            after_flow(yaml_event:pop(E), Space);
 
         {Block, _, _} ->
-            {Space, E1} = yaml_space:space(E),
-            after_flow(E1, Block, Space)
+            after_flow(E, Block, Space)
     end.
 
 %-----------------------------------------------------------------------
@@ -419,9 +424,6 @@ after_block(E, Space) ->
     case yaml_event:top(E) of
         {document, _, _} ->
             yaml_document:block_did_end(E, Space);
-
-        {block, _, _} ->
-            after_block(yaml_event:pop(E), Space);
 
         _ ->
             after_block_space(E, Space)
