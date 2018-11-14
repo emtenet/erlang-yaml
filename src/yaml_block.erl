@@ -100,83 +100,6 @@ content_continue(E, Props) ->
 
 %=======================================================================
 
--spec flow_did_end(yaml_event:state()) -> yaml_event:emit().
-
-flow_did_end(E) ->
-    after_content(E).
-
-%=======================================================================
-
-empty(E, At = {_, _}, Next) ->
-    Event = {empty, At, At, no_anchor, no_tag},
-    yaml_event:emit(Event, E, Next).
-
-%-----------------------------------------------------------------------
-
-empty(E, #{ from := From, anchor := Anchor, tag := Tag }, Thru, Next) ->
-    Event = {empty, From, Thru, Anchor, Tag},
-    yaml_event:emit(Event, E, Next).
-
-%=======================================================================
-
-alias(E, #{ anchor := no_anchor, tag := no_tag }) ->
-    scalar(yaml_anchor:alias(E)).
-
-%-----------------------------------------------------------------------
-
-plain(E, Props) ->
-    scalar(yaml_plain:scalar(E, block, Props)).
-
-%-----------------------------------------------------------------------
-
-single(E, Props) ->
-    scalar(yaml_single:scalar(E, block, Props)).
-
-%-----------------------------------------------------------------------
-
-double(E, Props) ->
-    scalar(yaml_double:scalar(E, block, Props)).
-
-%-----------------------------------------------------------------------
-
-literal(E, Style, Props) ->
-    scalar(yaml_literal:block(E, Style, Props)).
-
-%-----------------------------------------------------------------------
-
-scalar({Scalar, Errors, E}) ->
-    Next = fun (EE) -> after_scalar(EE, Errors) end,
-    yaml_event:emit(Scalar, E, Next).
-
-%-----------------------------------------------------------------------
-
-after_scalar(E, [Error | Errors]) ->
-    Next = fun (EE) -> after_scalar(EE, Errors) end,
-    yaml_event:error(Error, E, Next);
-after_scalar(E, []) ->
-    after_content(E).
-
-%=======================================================================
-
-after_content(E) ->
-    {Space, E1} = yaml_space:space(E),
-    after_content(E1, Space).
-
-%-----------------------------------------------------------------------
-
-after_content(E, {_, in_line, _, _}) ->
-    case yaml_event:top(E) of
-        {implicit_key, _, _} ->
-            after_implicit_key(E);
-
-        _ ->
-            throw({not_implemented, space_trailing})
-    end;
-after_content(E, Space) ->
-    after_block(E, Space).
-
-%=======================================================================
-
 -spec props_empty(yaml:coord()) -> yaml:props().
 
 props_empty(From) ->
@@ -259,6 +182,83 @@ after_property_block(E, N, Props) ->
         explicit_key ->
             explicit_key_first(yaml_event:pop(E), N, Props)
     end.
+
+%=======================================================================
+
+empty(E, At = {_, _}, Next) ->
+    Event = {empty, At, At, no_anchor, no_tag},
+    yaml_event:emit(Event, E, Next).
+
+%-----------------------------------------------------------------------
+
+empty(E, #{ from := From, anchor := Anchor, tag := Tag }, Thru, Next) ->
+    Event = {empty, From, Thru, Anchor, Tag},
+    yaml_event:emit(Event, E, Next).
+
+%=======================================================================
+
+alias(E, #{ anchor := no_anchor, tag := no_tag }) ->
+    scalar(yaml_anchor:alias(E)).
+
+%-----------------------------------------------------------------------
+
+plain(E, Props) ->
+    scalar(yaml_plain:scalar(E, block, Props)).
+
+%-----------------------------------------------------------------------
+
+single(E, Props) ->
+    scalar(yaml_single:scalar(E, block, Props)).
+
+%-----------------------------------------------------------------------
+
+double(E, Props) ->
+    scalar(yaml_double:scalar(E, block, Props)).
+
+%-----------------------------------------------------------------------
+
+literal(E, Style, Props) ->
+    scalar(yaml_literal:block(E, Style, Props)).
+
+%-----------------------------------------------------------------------
+
+scalar({Scalar, Errors, E}) ->
+    Next = fun (EE) -> after_scalar(EE, Errors) end,
+    yaml_event:emit(Scalar, E, Next).
+
+%-----------------------------------------------------------------------
+
+after_scalar(E, [Error | Errors]) ->
+    Next = fun (EE) -> after_scalar(EE, Errors) end,
+    yaml_event:error(Error, E, Next);
+after_scalar(E, []) ->
+    after_content(E).
+
+%=======================================================================
+
+-spec flow_did_end(yaml_event:state()) -> yaml_event:emit().
+
+flow_did_end(E) ->
+    after_content(E).
+
+%=======================================================================
+
+after_content(E) ->
+    {Space, E1} = yaml_space:space(E),
+    after_content(E1, Space).
+
+%-----------------------------------------------------------------------
+
+after_content(E, {_, in_line, _, _}) ->
+    case yaml_event:top(E) of
+        {implicit_key, _, _} ->
+            after_implicit_key(E);
+
+        _ ->
+            throw({not_implemented, space_trailing})
+    end;
+after_content(E, Space) ->
+    after_block(E, Space).
 
 %=======================================================================
 
