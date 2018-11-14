@@ -1,0 +1,22 @@
+@@@ Example 6.16 "TAG" directive
+
+@@@ source
+
+%TAG !yaml! tag:yaml.org,2002:
+---
+!yaml!str "foo"
+
+@@@ events
+
+{start_of_stream, {1, 1}}.
+{start_of_document, {1, 1}}.
+{tag_directive, {1, 1}, {1, 31}
+, {{1, 6}, {1, 12}, <<"!yaml!">>}
+, {{1, 13}, {1, 31}, <<"tag:yaml.org,2002:">>}
+}.
+{double, {3, 1}, {3, 16}, no_anchor
+, {tag, {3, 1}, {3, 10}, <<"!yaml!str">>}
+, [ {{3, 12}, {3, 15}, <<"foo">>} ]
+}.
+{end_of_document, {3, 16}}.
+{end_of_stream, {4, 1}}.

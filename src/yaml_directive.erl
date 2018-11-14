@@ -27,11 +27,22 @@ construct([{_, _, yaml}], Info) ->
     {construct_yaml({1, 2}, Info), []};
 construct([V = {_, _, Version}, {_, _, yaml}], Info) ->
     {construct_yaml(Version, Info), construct_yaml_errors(V)};
+construct([{_, T, tag}], Info) ->
+    {construct_tag({T, T, <<>>}, {T, T, <<>>}, Info), []};
+construct([Handle, {_, T, tag}], Info) ->
+    {construct_tag(Handle, {T, T, <<>>}, Info), []};
+construct([Prefix, Handle, {_, _, tag}], Info) ->
+    {construct_tag(Handle, Prefix, Info), []};
 construct(Ws, #{ from := From, thru := Thru }) ->
     [{_, _, Name} | Words] = lists:reverse(Ws),
     Directive = {reserved_directive, From, Thru, Name, Words},
     Errors = [],
     {Directive, Errors}.
+
+%-----------------------------------------------------------------------
+
+construct_tag(Handle, Prefix, #{ from := From, thru := Thru }) ->
+    {tag_directive, From, Thru, Handle, Prefix}.
 
 %-----------------------------------------------------------------------
 
@@ -67,7 +78,7 @@ name_end(T, S) ->
             yaml_space(yaml_token:keep(T, yaml, S), S, S); 
 
         {_, _, <<"TAG">>} ->
-            throw(tag);
+            tag_space(yaml_token:keep(T, tag, S), S, S);
 
         {From, Thru, <<>>} ->
             name_error(T, S, expecting_directive_name, From, Thru);
@@ -228,6 +239,91 @@ yaml_bad_version(T, White) ->
 yaml_bad_version(T, White, S) ->
     T1 = yaml_token:error(T, bad_yaml_version, White),
     extra_space(T1, White, S).
+
+%=======================================================================
+
+tag_space(T, White, S) ->
+    case yaml_scan:grapheme(S) of
+        end_of_stream ->
+            tag_expecting_handle(T, White);
+
+        break ->
+            tag_expecting_handle(T, White);
+
+        G when ?IS_WHITE(G) ->
+            tag_space(T, White, yaml_scan:next(S));
+
+        $# ->
+            tag_expecting_handle(T, White);
+
+        $! ->
+            tag_handle(yaml_token:skip(T, S), yaml_scan:next(S))
+    end.
+
+%-----------------------------------------------------------------------
+
+tag_expecting_handle(T, White) ->
+    T1 = yaml_token:error(T, expecting_tag_handle, White),
+    yaml_token:finish(T1, White).
+
+%-----------------------------------------------------------------------
+
+tag_handle(T, S) ->
+    case yaml_scan:grapheme(S) of
+        $! ->
+            tag_handle_end(T, yaml_scan:next(S));
+
+        G when ?IS_WORD_CHAR(G) ->
+            tag_handle(T, yaml_scan:next(S))
+    end.
+
+%-----------------------------------------------------------------------
+
+tag_handle_end(T, S) ->
+    case yaml_scan:grapheme(S) of
+        G when ?IS_WHITE(G) ->
+            tag_handle_space(yaml_token:keep(T, S), S, yaml_scan:next(S))
+    end.
+
+%-----------------------------------------------------------------------
+
+tag_handle_space(T, White, S) ->
+    case yaml_scan:grapheme(S) of
+        end_of_stream ->
+            tag_expecting_prefix(T, White);
+
+        break ->
+            tag_expecting_prefix(T, White);
+
+        G when ?IS_WHITE(G) ->
+            tag_handle_space(T, White, yaml_scan:next(S));
+
+        $# ->
+            tag_expecting_prefix(T, White);
+
+        G when ?IS_URI_CHAR(G) ->
+            tag_prefix(yaml_token:skip(T, S), yaml_scan:next(S))
+    end.
+
+%-----------------------------------------------------------------------
+
+tag_expecting_prefix(T, White) ->
+    T1 = yaml_token:error(T, expecting_tag_prefix, White),
+    yaml_token:finish(T1, White).
+
+%-----------------------------------------------------------------------
+
+tag_prefix(T, S) ->
+    case yaml_scan:grapheme(S) of
+        break ->
+            yaml_token:finish(T, S);
+
+        G when ?IS_WHITE(G) ->
+            extra_space(yaml_token:keep(T, S), S, yaml_scan:next(S));
+
+        G when ?IS_URI_CHAR(G) ->
+            tag_prefix(T, yaml_scan:next(S))
+    end.
 
 %=======================================================================
 
