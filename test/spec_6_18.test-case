@@ -1,0 +1,32 @@
+@@@ Example 6.18 Primary Tag Handle
+
+@@@ source
+
+# Private
+!foo "bar"
+...
+# Global
+%TAG ! tag:example.com,2000:app/
+---
+!foo "bar"
+
+@@@ events
+
+{start_of_stream, {1, 1}}.
+{start_of_document, {2, 1}}.
+{double, {2, 1}, {2, 11}, no_anchor
+, {tag, {2, 1}, {2, 5}, <<"!foo">>}
+, [ {{2, 7}, {2, 10}, <<"bar">>} ]
+}.
+{end_of_document, {3, 4}}.
+{start_of_document, {5, 1}}.
+{tag_directive, {5, 1}, {5, 33}
+, {{5, 6}, {5, 7}, <<"!">>}
+, {{5, 8}, {5, 33}, <<"tag:example.com,2000:app/">>}
+}.
+{double, {7, 1}, {7, 11}, no_anchor
+, {tag, {7, 1}, {7, 5}, <<"!foo">>}
+, [ {{7, 7}, {7, 10}, <<"bar">>} ]
+}.
+{end_of_document, {7, 11}}.
+{end_of_stream, {8, 1}}.
