@@ -36,6 +36,9 @@ property_handle(T, S) ->
         $! ->
             property_shorthand_suffix(T, yaml_scan:next(S));
 
+        $< ->
+            property_verbatim(T, yaml_scan:next(S));
+
         G when ?IS_FLOW_INDICATOR(G) ->
             yaml_token:finish(T, S);
 
@@ -64,6 +67,17 @@ property_shorthand_suffix(T, S) ->
 
         _ ->
             property_finish(T, S)
+    end.
+
+%-----------------------------------------------------------------------
+
+property_verbatim(T, S) ->
+    case yaml_scan:grapheme(S) of
+        $> ->
+            property_finish(T, yaml_scan:next(S));
+
+        G when ?IS_URI_CHAR(G) ->
+            property_verbatim(T, yaml_scan:next(S))
     end.
 
 %-----------------------------------------------------------------------
