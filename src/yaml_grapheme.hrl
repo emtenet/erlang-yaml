@@ -96,6 +96,7 @@
      orelse (C >= $0 andalso C =< $9)
      orelse (C >= $A andalso C =< $Z)
      orelse (C >= $a andalso C =< $z)
+     orelse (C =:= $-)
      orelse (C =:= $#)
      orelse (C =:= $;)
      orelse (C =:= $/)
