@@ -1,0 +1,27 @@
+@@@ Example 5.6 Node Property Indicators
+
+@@@ source
+
+anchored: !local &anchor value
+alias: *anchor
+
+@@@ events
+
+{start_of_stream, {1, 1}}.
+{start_of_document, {1, 1}}.
+{start_of_mapping, {1, 1}, no_anchor, no_tag}.
+{plain, {1, 1}, {1, 9}, no_anchor, no_tag
+, [ {{1, 1}, {1, 9}, <<"anchored">>} ]
+}.
+{plain, {1, 11}, {1, 31}
+, {anchor, {1, 18}, {1, 25}, <<"anchor">>}
+, {tag, {1, 11}, {1, 17}, <<"!">>, <<"local">>}
+, [ {{1, 26}, {1, 31}, <<"value">>} ]
+}.
+{plain, {2, 1}, {2, 6}, no_anchor, no_tag
+, [ {{2, 1}, {2, 6}, <<"alias">>} ]
+}.
+{alias, {2, 8}, {2, 15}, <<"anchor">>}.
+{end_of_mapping, {2, 15}}.
+{end_of_document, {2, 15}}.
+{end_of_stream, {3, 1}}.
