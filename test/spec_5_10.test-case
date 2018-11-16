@@ -13,20 +13,20 @@ grave-accent: `text
 {plain, {1, 1}, {1, 14}, no_anchor, no_tag
 , [ {{1, 1}, {1, 14}, <<"commercial-at">>} ]
 }.
-{plain, {1, 16}, {1, 21}, no_anchor, no_tag
-, [ {{1, 16}, {1, 21}, <<"@text">>} ]
-}.
 {error
 , {reserved_indicator, {1, 16}, {1, 17}, {plain, {1, 16}, {1, 21}}}
+}.
+{plain, {1, 16}, {1, 21}, no_anchor, no_tag
+, [ {{1, 16}, {1, 21}, <<"@text">>} ]
 }.
 {plain, {2, 1}, {2, 13}, no_anchor, no_tag
 , [ {{2, 1}, {2, 13}, <<"grave-accent">>} ]
 }.
-{plain, {2, 15}, {2, 20}, no_anchor, no_tag
-, [ {{2, 15}, {2, 20}, <<"`text">>} ]
-}.
 {error
 , {reserved_indicator, {2, 15}, {2, 16}, {plain, {2, 15}, {2, 20}}}
+}.
+{plain, {2, 15}, {2, 20}, no_anchor, no_tag
+, [ {{2, 15}, {2, 20}, <<"`text">>} ]
 }.
 {end_of_mapping, {2, 20}}.
 {end_of_document, {2, 20}}.

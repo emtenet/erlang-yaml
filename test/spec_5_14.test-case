@@ -14,18 +14,18 @@ Bad escapes:
 {plain, {1, 1}, {1, 12}, no_anchor, no_tag
 , [ {{1, 1}, {1, 12}, <<"Bad escapes">>} ]
 }.
+{error
+, {bad_escape, {2, 4}, {2, 6}, {double, {2, 3}, {3, 8}}}
+}.
+{error
+, {bad_escape, {3, 3}, {3, 6}, {double, {2, 3}, {3, 8}}}
+}.
 {double, {2, 3}, {3, 8}, no_anchor, no_tag
 , [ {{2, 4}, {2, 6}, <<"\\c">>}
   , {{2, 6}, {3, 3}, <<" ">>}
   , {{3, 3}, {3, 6}, <<"\\xq">>}
   , {{3, 6}, {3, 7}, <<"-">>}
   ]
-}.
-{error
-, {bad_escape, {2, 4}, {2, 6}, {double, {2, 3}, {3, 8}}}
-}.
-{error
-, {bad_escape, {3, 3}, {3, 6}, {double, {2, 3}, {3, 8}}}
 }.
 {end_of_mapping, {3, 8}}.
 {end_of_document, {3, 8}}.

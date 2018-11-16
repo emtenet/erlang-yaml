@@ -253,16 +253,16 @@ literal(E, Style, Props) ->
 %-----------------------------------------------------------------------
 
 scalar({Scalar, Errors, E}) ->
-    Next = fun (EE) -> after_scalar(EE, Errors) end,
-    yaml_event:emit(Scalar, E, Next).
+    scalar_emit(E, Errors, Scalar).
 
 %-----------------------------------------------------------------------
 
-after_scalar(E, [Error | Errors]) ->
-    Next = fun (EE) -> after_scalar(EE, Errors) end,
+scalar_emit(E, [Error | Errors], Scalar) ->
+    Next = fun (EE) -> scalar_emit(EE, Errors, Scalar) end,
     yaml_event:error(Error, E, Next);
-after_scalar(E, []) ->
-    after_flow(E).
+scalar_emit(E, [], Scalar) ->
+    Next = fun after_flow/1,
+    yaml_event:emit(Scalar, E, Next).
 
 %=======================================================================
 

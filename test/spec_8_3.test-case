@@ -16,6 +16,9 @@
 {start_of_stream, {1, 1}}.
 {start_of_document, {1, 1}}.
 {start_of_sequence, {1, 1}, no_anchor, no_tag}.
+{error
+, {leading_spaces, {2, 2}, {2, 3}, {literal, {1, 3}, {4, 1}}}
+}.
 {literal, {1, 3}, {4, 1}, no_anchor, no_tag
 , [ {{2, 3}, {3, 2}, <<"\n">>}
   , {{3, 2}, {3, 6}, <<"text">>}
@@ -23,7 +26,7 @@
   ]
 }.
 {error
-, {leading_spaces, {2, 2}, {2, 3}, {literal, {1, 3}, {4, 1}}}
+, {less_indented, {6, 2}, {6, 3}, {folded, {4, 3}, {7, 1}}}
 }.
 {folded, {4, 3}, {7, 1}, no_anchor, no_tag
 , [ {{5, 3}, {5, 7}, <<"text">>}
@@ -33,15 +36,12 @@
   ]
 }.
 {error
-, {less_indented, {6, 2}, {6, 3}, {folded, {4, 3}, {7, 1}}}
+, {less_indented, {8, 2}, {8, 3}, {literal, {7, 3}, {9, 1}}}
 }.
 {literal , {7, 3}, {9, 1}, no_anchor, no_tag
 , [ {{8, 2}, {8, 6}, <<"text">>}
   , {{8, 6}, {9, 1}, <<"\n">>}
   ]
-}.
-{error
-, {less_indented, {8, 2}, {8, 3}, {literal, {7, 3}, {9, 1}}}
 }.
 {end_of_sequence, {9, 1}}.
 {end_of_document, {9, 1}}.

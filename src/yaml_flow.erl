@@ -321,16 +321,16 @@ alias(E, #{ anchor := no_anchor, tag := no_tag }) ->
 %-----------------------------------------------------------------------
 
 scalar({Scalar, Errors, E}) ->
-    Next = fun (EE) -> end_of_scaler(EE, Errors) end,
-    yaml_event:emit(Scalar, E, Next).
+    scalar_emit(E, Errors, Scalar).
 
 %-----------------------------------------------------------------------
 
-end_of_scaler(E, [Error | Errors]) ->
-    Next = fun (EE) -> end_of_scaler(EE, Errors) end,
+scalar_emit(E, [Error | Errors], Scalar) ->
+    Next = fun (EE) -> scalar_emit(EE, Errors, Scalar) end,
     yaml_event:error(Error, E, Next);
-end_of_scaler(E, []) ->
-    end_of_content(E).
+scalar_emit(E, [], Scalar) ->
+    Next = fun end_of_content/1,
+    yaml_event:emit(Scalar, E, Next).
 
 %=======================================================================
 
