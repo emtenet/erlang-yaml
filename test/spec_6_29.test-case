@@ -1,0 +1,27 @@
+@@@ Example 6.29 Node Anchors
+
+@@@ source
+
+First occurrence: &anchor Value
+Second occurrence: *anchor
+
+@@@ events
+
+{start_of_stream, {1, 1}}.
+{start_of_document, {1, 1}}.
+{start_of_mapping, {1, 1}, no_anchor, no_tag}.
+{plain, {1, 1}, {1, 17}, no_anchor, no_tag
+, [ {{1, 1}, {1, 17}, <<"First occurrence">>} ]
+}.
+{plain, {1, 19}, {1, 32}
+, {anchor, {1, 19}, {1, 26}, <<"anchor">>}
+, no_tag
+, [ {{1, 27}, {1, 32}, <<"Value">>} ]
+}.
+{plain, {2, 1}, {2, 18}, no_anchor, no_tag
+, [ {{2, 1}, {2, 18}, <<"Second occurrence">>} ]
+}.
+{alias, {2, 20}, {2, 27}, <<"anchor">>}.
+{end_of_mapping, {2, 27}}.
+{end_of_document, {2, 27}}.
+{end_of_stream, {3, 1}}.
