@@ -1,0 +1,28 @@
+@@@ Example 6.25 Invalid Verbatim Tags
+
+@@@ source
+
+- !<!> foo
+- !<$:?> bar
+
+@@@ events
+
+{start_of_stream, {1, 1}}.
+{start_of_document, {1, 1}}.
+{start_of_sequence, {1, 1}, no_anchor, no_tag}.
+{error
+, {invalid_local_tag, {1, 5}, {1, 6}
+  , {tag, {1, 3}, {1, 7}}
+  }
+}.
+{plain, {1, 3}, {1, 11}, no_anchor
+, {tag, {1, 3}, {1, 7}, <<"!<!>">>}
+, [ {{1, 8}, {1, 11}, <<"foo">>} ]
+}.
+{plain, {2, 3}, {2, 13}, no_anchor
+, {tag, {2, 3}, {2, 9}, <<"!<$:?>">>}
+, [ {{2, 10}, {2, 13}, <<"bar">>} ]
+}.
+{end_of_sequence, {2, 13}}.
+{end_of_document, {2, 13}}.
+{end_of_stream, {3, 1}}.

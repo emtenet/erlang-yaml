@@ -37,7 +37,8 @@ property_handle(T, S) ->
             property_shorthand_suffix(T, yaml_scan:next(S));
 
         $< ->
-            property_verbatim(T, yaml_scan:next(S));
+            Z = yaml_scan:next(S),
+            property_verbatim(T, Z, Z);
 
         G when ?IS_FLOW_INDICATOR(G) ->
             yaml_token:finish(T, S);
@@ -71,13 +72,25 @@ property_shorthand_suffix(T, S) ->
 
 %-----------------------------------------------------------------------
 
-property_verbatim(T, S) ->
+property_verbatim(T, Start, S) ->
     case yaml_scan:grapheme(S) of
         $> ->
-            property_finish(T, yaml_scan:next(S));
+            T1 = property_verbatim_check(T, Start, S),
+            property_finish(T1, yaml_scan:next(S));
 
         G when ?IS_URI_CHAR(G) ->
-            property_verbatim(T, yaml_scan:next(S))
+            property_verbatim(T, Start, yaml_scan:next(S))
+    end.
+
+%-----------------------------------------------------------------------
+
+property_verbatim_check(T, Start, End) ->
+    case yaml_scan:consumed(Start, End) of
+        <<"!">> ->
+            yaml_token:error_range(T, invalid_local_tag, Start, End);
+
+        _ ->
+            T
     end.
 
 %-----------------------------------------------------------------------
