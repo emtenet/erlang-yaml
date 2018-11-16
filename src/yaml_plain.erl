@@ -214,7 +214,10 @@ fold_indent(Style, Abort, T, White, S) ->
 
                 false ->
                     fold_abort(Abort)
-            end
+            end;
+
+        _ ->
+            fold_abort(Abort)
     end.
 
 %-----------------------------------------------------------------------
@@ -242,7 +245,10 @@ fold_white(Style, Abort, T, White, Indented, S) ->
 
                 false ->
                     fold_abort(Abort)
-            end
+            end;
+
+        _ ->
+            fold_abort(Abort)
     end.
 
 %=======================================================================

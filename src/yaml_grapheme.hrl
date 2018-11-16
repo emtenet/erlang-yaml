@@ -3,21 +3,11 @@
 %% See LICENSE for licensing information.
 %=======================================================================
 
--define(BOM, 16#FEFF).
+-define(IS_PRINTABLE(G), (is_integer(G) orelse is_list(G))).
 
 -define(IS_WHITE(G),
     (       (G =:= $\s)
      orelse (G =:= $\t)
-    )).
-
--define(IS_PRINTABLE(G),
-    (       (G =:= $\t)
-     orelse ((G >= $\s) andalso (G =< $~))
-     orelse (G =:= 16#85)
-     orelse ((G >= 16#A0) andalso (G =< 16#D7FF))
-     orelse ((G >= 16#E000) andalso (G =< 16#FFFD))
-     orelse ((G >= 16#10000) andalso (G =< 16#10FFFF))
-     orelse (hd(G))
     )).
 
 -define(IS_DIGIT(G), (G >= $0) andalso (G =< $9)).

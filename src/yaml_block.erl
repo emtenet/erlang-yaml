@@ -523,11 +523,17 @@ after_block_sequence(E, N) ->
 
 after_block_sequence_or_pop(E, Space, N) ->
     case yaml_implicit:detect(E, block) of
-        sequence ->
-            sequence_next(E, N);
+        explicit_key ->
+            after_block_pop(E, Space);
 
-        _ ->
-            after_block_pop(E, Space)
+        explicit_value ->
+            after_block_pop(E, Space);
+
+        implicit_key ->
+            after_block_pop(E, Space);
+
+        sequence ->
+            sequence_next(E, N)
     end.
 
 %-----------------------------------------------------------------------

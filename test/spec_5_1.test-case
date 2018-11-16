@@ -1,0 +1,10 @@
+@@@ Example 5.1 Byte Order Mark
+
+@@@ source
+
+@BOM@# Comment only.
+
+@@@ events
+
+{start_of_stream, {1, 1}}.
+{end_of_stream, {2, 1}}.

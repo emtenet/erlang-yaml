@@ -22,12 +22,30 @@ stream(E0) ->
         {{_, end_of, directives, At}, E1} ->
             directive_start(E1, At);
 
+        {{_, end_of, stream, _}, E1} ->
+            yaml_event:stream_should_end(E1);
+
+        {{_, end_of, byte_order_mark, _}, E1} ->
+            stream(yaml_event:scan_next(E1));
+
+        {Space = {_, end_of, _, _}, E1} ->
+            stream_did_error(E1, Space);
+
         {Space = {_, indent_line, 0, 0}, E1} ->
             may_start_document(E1, Space);
 
-        {{_, end_of, stream, _}, E1} ->
-            yaml_event:stream_should_end(E1)
+        {Space, E1} ->
+            Next = fun (EE) -> yaml_block:document(EE, Space) end,
+            start_of_document(E1, Next)
     end.
+
+%-----------------------------------------------------------------------
+
+stream_did_error(E, {Thru, end_of, Bad, _}) ->
+    {stream, -1, From} = yaml_event:top(E),
+    Error = {Bad, Thru, Thru, {stream, From, Thru}},
+    Next = fun stream/1,
+    yaml_event:error(Error, yaml_event:scan_next(E), Next).
 
 %=======================================================================
 
@@ -46,7 +64,7 @@ start_of_document(E, At, Next) ->
 
 may_start_document(E, Space) ->
     case yaml_event:grapheme(E) of
-        ?BOM ->
+        byte_order_mark ->
             stream(yaml_event:scan_next(E));
 
         $% ->
@@ -154,8 +172,19 @@ block_did_end(E, Space) ->
 
         {End, end_of, stream, _} ->
             Next = fun yaml_event:stream_should_end/1,
-            document_did_end(E, End, Next)
+            document_did_end(E, End, Next);
+
+        _ ->
+            document_did_error(E, Space)
     end.
+
+%-----------------------------------------------------------------------
+
+document_did_error(E, {Thru, end_of, Bad, _}) ->
+    {document, -1, From} = yaml_event:top(E),
+    Error = {Bad, Thru, Thru, {document, From, Thru}},
+    Next = fun (EE) -> document_did_end(EE, Thru, fun stream/1) end,
+    yaml_event:error(Error, yaml_event:scan_next(E), Next).
 
 %-----------------------------------------------------------------------
 

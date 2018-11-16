@@ -27,12 +27,17 @@
 
 -type space_white() :: non_neg_integer().
 
--type space_end_of() :: stream | document | directives.
+-type space_end_of() ::
+    stream |
+    document |
+    directives |
+    byte_order_mark |
+    not_printable |
+    bad_encoding.
 
 -type space() ::
     {yaml:coord(), space_line(), space_indent(), space_white()} |
-    {yaml:coord(), end_of, space_end_of(), yaml:coord()} |
-    bad_encoding.
+    {yaml:coord(), end_of, space_end_of(), yaml:coord()}.
 
 %=======================================================================
 
@@ -70,6 +75,9 @@ start_of_space(E, S, Line) ->
         break ->
             start_of_line(E, yaml_scan:next(S));
 
+        G when is_atom(G) ->
+            end_of(E, S, G);
+
         $\s ->
             indent(E, yaml_scan:next(S), Line, 1);
 
@@ -79,7 +87,7 @@ start_of_space(E, S, Line) ->
         $# ->
             comment(E, yaml_scan:next(S));
 
-        _ ->
+        G when ?IS_PRINTABLE(G) ->
             line(E, S, Line, 0, 0)
     end.
 
@@ -93,6 +101,9 @@ indent(E, S, Line, Indent) ->
         break ->
             start_of_line(E, yaml_scan:next(S));
 
+        G when is_atom(G) ->
+            end_of(E, S, G);
+
         $\s ->
             indent(E, yaml_scan:next(S), Line, Indent + 1);
 
@@ -102,7 +113,7 @@ indent(E, S, Line, Indent) ->
         $# ->
             comment(E, yaml_scan:next(S));
 
-        _ ->
+        G when ?IS_PRINTABLE(G) ->
             line(E, S, Line, Indent, 0)
     end.
 
@@ -116,6 +127,9 @@ whitespace(E, S, Line, Indent, White) ->
         break ->
             start_of_line(E, yaml_scan:next(S));
 
+        G when is_atom(G) ->
+            end_of(E, S, G);
+
         $\s ->
             whitespace(E, yaml_scan:next(S), Line, Indent, White + 1);
 
@@ -125,7 +139,7 @@ whitespace(E, S, Line, Indent, White) ->
         $# ->
             comment(E, yaml_scan:next(S));
 
-        _ ->
+        G when ?IS_PRINTABLE(G) ->
             line(E, S, Line, Indent, White)
     end.
 
@@ -139,12 +153,19 @@ comment(E, S) ->
         break ->
             start_of_line(E, yaml_scan:next(S));
 
-        bad_encoding ->
-            bad_encoding(E, S);
+        G when is_atom(G) ->
+            end_of(E, S, G);
 
-        _ ->
+        G when ?IS_PRINTABLE(G) ->
             comment(E, yaml_scan:next(S))
     end.
+
+%-----------------------------------------------------------------------
+
+end_of(E, S, EndOf) ->
+    From = yaml_event:coord(E),
+    At = yaml_scan:coord(S),
+    {{From, end_of, EndOf, At}, yaml_event:scan_to(E, S)}.
 
 %-----------------------------------------------------------------------
 
@@ -158,11 +179,6 @@ end_of_stream(E, S) ->
 line(E, S, Line, Indent, White) ->
     From = yaml_event:coord(E),
     {{From, Line, Indent, White}, yaml_event:scan_to(E, S)}.
-
-%-----------------------------------------------------------------------
-
-bad_encoding(E, S) ->
-    {bad_encoding, yaml_event:scan_to(E, S)}.
 
 %=======================================================================
 
@@ -265,11 +281,11 @@ space_test_() ->
               {2, 4, <<>>})
     , ?_space("Bad encoding in middle of line",
               {1, 2, <<"  ", 128>>},
-              {{1, 2}, in_line, 2, 0},
+              {{1, 2}, end_of, bad_encoding, {1, 4}},
               {1, 4, <<128>>})
     , ?_space("Bad encoding in comment",
               {1, 2, <<" # ", 128>>},
-              bad_encoding,
+              {{1, 2}, end_of, bad_encoding, {1, 5}},
               {1, 5, <<128>>})
     ].
 

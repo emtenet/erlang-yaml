@@ -28,6 +28,8 @@
 
 %=======================================================================
 
+-define(BOM, 16#FEFF).
+
 -define(IS_BREAK(G),
             (       (G =:= $\n)
              orelse (G =:= $\r)
@@ -41,12 +43,25 @@
              orelse (C =:= $\r)
             )).
 
+-undef(IS_PRINTABLE).
+-define(IS_PRINTABLE(G),
+            (       (G =:= $\t)
+             orelse ((G >= $\s) andalso (G =< $~))
+             orelse (G =:= 16#85)
+             orelse ((G >= 16#A0) andalso (G =< 16#D7FF))
+             orelse ((G >= 16#E000) andalso (G =< 16#FFFD))
+             orelse ((G >= 16#10000) andalso (G =< 16#10FFFF))
+             orelse (hd(G))
+            )).
+
 %=======================================================================
 
 -type grapheme() ::
     string:grapheme_cluster() |
     break |
     end_of_stream |
+    byte_order_mark |
+    not_printable |
     bad_encoding.
 
 -record(scan,
@@ -149,20 +164,29 @@ prepare(B, R, C) ->
             #scan{b = B, g = end_of_stream, n = B, r = R, c = C};
 
         [G] ->
-            #scan{b = B, g = G, n = <<>>, r = R, c = C};
+            prepare(B, G, <<>>, R, C);
 
         [G| N] when is_binary(N) andalso ?IS_BREAK(G) ->
             #scan{b = B, g = break, n = N, r = R, c = C};
 
         [G| N] when is_binary(N) ->
-            #scan{b = B, g = G, n = N, r = R, c = C};
+            prepare(B, G, N, R, C);
 
         [G, N] when is_binary(N) ->
-            #scan{b = B, g = G, n = N, r = R, c = C};
+            prepare(B, G, N, R, C);
 
         {error, _} ->
             #scan{b = B, g = bad_encoding, n = <<>>, r = R, c = C}
     end.
+
+%-----------------------------------------------------------------------
+
+prepare(B, ?BOM, N, R, C) ->
+    #scan{b = B, g = byte_order_mark, n = N, r = R, c = C};
+prepare(B, G, N, R, C) when ?IS_PRINTABLE(G) ->
+    #scan{b = B, g = G, n = N, r = R, c = C};
+prepare(B, _, N, R, C) ->
+    #scan{b = B, g = not_printable, n = N, r = R, c = C}.
 
 %=======================================================================
 
