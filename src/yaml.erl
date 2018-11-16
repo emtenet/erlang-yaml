@@ -19,7 +19,7 @@
 -type anchor() :: {anchor, coord(), coord(), binary()}.
 -type maybe_anchor() :: anchor() | no_anchor.
 
--type tag() :: {tag, coord(), coord(), binary()}.
+-type tag() :: {tag, coord(), coord(), binary(), binary()}.
 -type maybe_tag() :: tag() | no_tag.
 
 -type props() ::

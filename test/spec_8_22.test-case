@@ -18,13 +18,13 @@ mapping: !!map
 , [ {{1, 1}, {1, 9}, <<"sequence">>} ]
 }.
 {start_of_sequence, {1, 11}, no_anchor
-, {tag, {1, 11}, {1, 16}, <<"!!seq">>}
+, {tag, {1, 11}, {1, 16}, <<"!!">>, <<"seq">>}
 }.
 {plain, {2, 3}, {2, 8}, no_anchor, no_tag
 , [ {{2, 3}, {2, 8}, <<"entry">>} ]
 }.
 {start_of_sequence, {3, 3}, no_anchor
-, {tag, {3, 3}, {3, 8}, <<"!!seq">>}
+, {tag, {3, 3}, {3, 8}, <<"!!">>, <<"seq">>}
 }.
 {plain, {4, 4}, {4, 10}, no_anchor, no_tag
 , [ {{4, 4}, {4, 10}, <<"nested">>} ]
@@ -35,7 +35,7 @@ mapping: !!map
 , [ {{5, 1}, {5, 8}, <<"mapping">>} ]
 }.
 {start_of_mapping, {5, 10}, no_anchor
-, {tag, {5, 10}, {5, 15}, <<"!!map">>}
+, {tag, {5, 10}, {5, 15}, <<"!!">>, <<"map">>}
 }.
 {plain, {6, 2}, {6, 5}, no_anchor, no_tag
 , [ {{6, 2}, {6, 5}, <<"foo">>} ]

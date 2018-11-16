@@ -156,7 +156,7 @@ property_tag(E, [Error | Errors], Tag, Props) ->
 property_tag(E, [], Tag, Props = #{ tag := no_tag }) ->
     after_property(E, Props#{ tag => Tag });
 property_tag(E, [], Tag, Props = #{ from := Start }) ->
-    {tag, From, Thru, _} = Tag,
+    {tag, From, Thru, _, _} = Tag,
     Error = {multiple_tags, From, Thru, {block, Start, Thru}},
     Next = fun (EE) -> after_property(EE, Props#{ tag => Tag }) end,
     yaml_event:error(Error, E, Next).

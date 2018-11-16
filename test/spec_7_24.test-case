@@ -14,7 +14,7 @@
 {start_of_document, {1, 1}}.
 {start_of_sequence, {1, 1}, no_anchor, no_tag}.
 {double, {1, 3}, {1, 12}, no_anchor
-, {tag, {1, 3}, {1, 8}, <<"!!str">>}
+, {tag, {1, 3}, {1, 8}, <<"!!">>, <<"str">>}
 , [ {{1, 10}, {1, 11}, <<"a">>} ]
 }.
 {single, {2, 3}, {2, 6}, no_anchor, no_tag
@@ -27,7 +27,7 @@
 }.
 {alias, {4, 3}, {4, 10}, <<"anchor">>}.
 {empty, {5, 3}, {5, 8}, no_anchor
-, {tag, {5, 3}, {5, 8}, <<"!!str">>}
+, {tag, {5, 3}, {5, 8}, <<"!!">>, <<"str">>}
 }.
 {end_of_sequence, {5, 8}}.
 {end_of_document, {5, 8}}.

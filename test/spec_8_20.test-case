@@ -23,7 +23,7 @@
   ]
 }.
 {start_of_mapping, {5, 3}, no_anchor
-, {tag, {5, 3}, {5, 8}, <<"!!map">>}
+, {tag, {5, 3}, {5, 8}, <<"!!">>, <<"map">>}
 }.
 {plain, {6, 3}, {6, 6}, no_anchor, no_tag
 , [ {{6, 3}, {6, 6}, <<"foo">>} ]

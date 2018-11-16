@@ -29,7 +29,7 @@
 {empty, {2, 2}, {2, 2}, no_anchor, no_tag}.
 {empty, {3, 2}, {3, 2}, no_anchor, no_tag}.
 {empty, {4, 3}, {4, 8}, no_anchor
-, {tag, {4, 3}, {4, 8}, <<"!!str">>}
+, {tag, {4, 3}, {4, 8}, <<"!!">>, <<"str">>}
 }.
 {empty, {5, 2}, {5, 2}, no_anchor, no_tag}.
 {end_of_sequence, {5, 2}}.
@@ -41,7 +41,7 @@
 {empty, {9, 2}, {9, 2}, no_anchor, no_tag}.
 {empty, {9, 2}, {9, 2}, no_anchor, no_tag}.
 {empty, {10, 3}, {10, 8}, no_anchor
-, {tag, {10, 3}, {10, 8}, <<"!!str">>}
+, {tag, {10, 3}, {10, 8}, <<"!!">>, <<"str">>}
 }.
 {empty, {10, 8}, {10, 8}, no_anchor, no_tag}.
 {empty, {11, 2}, {11, 2}, no_anchor, no_tag}.
@@ -56,7 +56,7 @@
 {empty, {15, 2}, {15, 2}, no_anchor, no_tag}.
 {empty, {16, 1}, {16, 1}, no_anchor, no_tag}.
 {empty, {16, 3}, {16, 8}, no_anchor
-, {tag, {16, 3}, {16, 8}, <<"!!str">>}
+, {tag, {16, 3}, {16, 8}, <<"!!">>, <<"str">>}
 }.
 {empty, {17, 1}, {17, 1}, no_anchor, no_tag}.
 {empty, {17, 2}, {17, 2}, no_anchor, no_tag}.
